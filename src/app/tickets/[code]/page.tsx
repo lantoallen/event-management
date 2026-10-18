@@ -92,6 +92,16 @@ async function Ticket({ params }: { params: PageProps<"/tickets/[code]">["params
             ) : (
               <p className="mt-3 text-[13px] text-muted">Show this at the door. They can also type the code.</p>
             )}
+            {new Date(event.endsAt) > new Date() && (
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <a href={`/api/me/tickets/${ticket.ticketCode}/calendar`} className="btn-secondary btn-sm" download>
+                  Add to calendar
+                </a>
+                <a href={googleCalendarUrl(ticket)} className="btn-secondary btn-sm" target="_blank" rel="noreferrer">
+                  Google Calendar
+                </a>
+              </div>
+            )}
           </>
         ) : event.status === "cancelled" ? (
           <p className="py-6 text-sm">This event was cancelled, so the ticket won&apos;t be used.</p>
@@ -105,4 +115,22 @@ async function Ticket({ params }: { params: PageProps<"/tickets/[code]">["params
       </div>
     </div>
   );
+}
+
+type TicketForCalendar = {
+  ticketCode: string;
+  event: { slug: string; title: string; startsAt: string; endsAt: string; isOnline: boolean; location: string | null; city: string };
+};
+
+// Google's "add event" link. Times go in as UTC, like 20261103T080000Z.
+function googleCalendarUrl({ ticketCode, event }: TicketForCalendar) {
+  const stamp = (d: string) => new Date(d).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: event.title,
+    dates: `${stamp(event.startsAt)}/${stamp(event.endsAt)}`,
+    details: `Your ticket: ${formatTicketCode(ticketCode)}\n${SITE_URL}/tickets/${ticketCode}`,
+    location: event.isOnline ? (event.location ?? "Online") : `${event.location}, ${event.city}`,
+  });
+  return `https://calendar.google.com/calendar/render?${params}`;
 }
