@@ -54,6 +54,19 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
         <Link href={`/events/${slug}`} className="btn-secondary">
           Public page
         </Link>
+        <button
+          type="button"
+          className="btn-secondary"
+          disabled={pending}
+          onClick={() =>
+            run(null, async () => {
+              const { event } = await unwrap(route.duplicate.$post(param));
+              router.push(`/organize/${event.id}/edit`);
+            }, () => {})
+          }
+        >
+          Duplicate
+        </button>
         <a href={`/api/organizer/events/${eventId}/attendees/export`} className="btn-secondary" download>
           Export CSV
         </a>
