@@ -8,4 +8,4 @@ export const SITE_URL =
     : `http://localhost:${process.env.PORT || 3000}`);
 
 export const AUTHOR = { name: "Allen Lanto", url: "https://lantoallen.vercel.app" };
-export const REPO_URL = "https://github.com/lantoallen/events-app";
+export const REPO_URL = "https://github.com/lantoallen/event-management";
