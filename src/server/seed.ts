@@ -369,6 +369,14 @@ function startTime(e: SeedEvent, now: Date) {
   return on(e.day!);
 }
 
+// Moves made-up sign-ups out of the small hours (Manila time) so the
+// attendee list doesn't look like everyone registers at 3 AM.
+function awake(d: Date, until: number) {
+  const hour = (d.getUTCHours() + 8) % 24;
+  if (hour >= 7) return d;
+  return new Date(Math.min(until, d.getTime() + (8 - hour) * 3_600_000));
+}
+
 export async function isEmpty(db: Db) {
   const [row] = await db.select({ n: sql<number>`count(*)`.mapWith(Number) }).from(users);
   return row.n === 0;
@@ -454,7 +462,7 @@ export async function seed(db: Db, now = new Date(), baseUrl = "http://localhost
         .map(() => {
           const r = rand();
           const curve = r < 0.5 ? 2 * r * r : 1 - 2 * (1 - r) * (1 - r);
-          return new Date(from + curve * (until - from));
+          return awake(new Date(from + curve * (until - from)), until);
         })
         .sort((a, b) => a.getTime() - b.getTime());
 
