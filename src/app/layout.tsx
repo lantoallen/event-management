@@ -26,8 +26,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
+        <a
+          href="#content"
+          className="sr-only rounded-md bg-ink px-3 py-2 text-sm text-bg focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
+        >
+          Skip to content
+        </a>
         <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-16 sm:px-6">{children}</main>
+        <main id="content" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-16 sm:px-6">
+          {children}
+        </main>
         <SiteFooter />
       </body>
     </html>
