@@ -1,0 +1,20 @@
+// npm run db:setup   apply migrations, and load sample data if the database is empty
+// npm run db:reset   wipe everything and load the sample data again
+//
+// Uses DATABASE_URL when it's set, otherwise the local PGlite folder.
+// Stop `npm run dev` first when using PGlite, since only one process can open it.
+import { SITE_URL } from "@/lib/config";
+import { openFromEnv } from "@/server/db/client";
+import { isEmpty, resetDatabase, seed } from "@/server/seed";
+
+const command = process.argv[2];
+const handle = await openFromEnv({ migrate: true });
+console.log(`Connected to ${handle.kind === "postgres" ? "Postgres" : "local PGlite"}, migrations applied.`);
+
+if (command === "reset") {
+  await resetDatabase(handle.db);
+  console.log("Seeded:", await seed(handle.db, new Date(), SITE_URL));
+} else if (await isEmpty(handle.db)) {
+  console.log("Seeded:", await seed(handle.db, new Date(), SITE_URL));
+}
+await handle.close();
