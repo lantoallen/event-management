@@ -43,3 +43,6 @@ next-env.d.ts
 # local database (PGlite)
 /.data
 !.env.example
+
+# snapshot for the in-memory demo database, made at build time
+/.demo-db

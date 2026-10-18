@@ -2,17 +2,18 @@
 // npm run db:reset   wipe everything and load the sample data again
 //
 // Uses DATABASE_URL when it's set, otherwise the local PGlite folder. On Vercel
-// without DATABASE_URL it does nothing, since the app runs an in-memory database.
+// without DATABASE_URL it saves a snapshot for the in-memory demo database.
 // Stop `npm run dev` first when using PGlite, since only one process can open it.
 import { SITE_URL } from "@/lib/config";
-import { isDemoMemoryMode, openFromEnv } from "@/server/db/client";
+import { isDemoMemoryMode, openFromEnv, saveDemoSnapshot } from "@/server/db/client";
 import { isEmpty, resetDatabase, seed } from "@/server/seed";
 
 // Wrapped in a function because tsx runs this file as CommonJS, which has no top-level await.
 async function main() {
   const command = process.argv[2];
   if (isDemoMemoryMode()) {
-    console.log("No DATABASE_URL, so the deployed app will use an in-memory demo database. Nothing to set up.");
+    const saved = await saveDemoSnapshot();
+    console.log(`No DATABASE_URL, so the app will run an in-memory demo database. Saved a migrated snapshot (${Math.round(saved.bytes / 1024)} KB) for it to start from.`);
     return;
   }
   const handle = await openFromEnv({ migrate: true });

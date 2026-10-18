@@ -6,10 +6,10 @@ const nextConfig: NextConfig = {
   // PGlite loads its own WebAssembly files, so it runs from node_modules
   // instead of being bundled.
   serverExternalPackages: ["@electric-sql/pglite"],
-  // The in-memory demo database runs the SQL migrations when a server starts,
-  // so they have to ship with the deployed functions.
+  // The in-memory demo database starts from the build's snapshot and checks
+  // the SQL migrations, so both have to ship with the deployed functions.
   outputFileTracingIncludes: {
-    "/**": ["./drizzle/**/*"],
+    "/**": ["./drizzle/**/*", "./.demo-db/**/*"],
   },
   turbopack: {
     rules: {
