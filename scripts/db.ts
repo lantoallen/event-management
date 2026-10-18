@@ -7,14 +7,24 @@ import { SITE_URL } from "@/lib/config";
 import { openFromEnv } from "@/server/db/client";
 import { isEmpty, resetDatabase, seed } from "@/server/seed";
 
-const command = process.argv[2];
-const handle = await openFromEnv({ migrate: true });
-console.log(`Connected to ${handle.kind === "postgres" ? "Postgres" : "local PGlite"}, migrations applied.`);
+// Wrapped in a function because tsx runs this file as CommonJS, which has no top-level await.
+async function main() {
+  const command = process.argv[2];
+  const handle = await openFromEnv({ migrate: true });
+  console.log(`Connected to ${handle.kind === "postgres" ? "Postgres" : "local PGlite"}, migrations applied.`);
 
-if (command === "reset") {
-  await resetDatabase(handle.db);
-  console.log("Seeded:", await seed(handle.db, new Date(), SITE_URL));
-} else if (await isEmpty(handle.db)) {
-  console.log("Seeded:", await seed(handle.db, new Date(), SITE_URL));
+  if (command === "reset") {
+    await resetDatabase(handle.db);
+    console.log("Seeded:", await seed(handle.db, new Date(), SITE_URL));
+  } else if (await isEmpty(handle.db)) {
+    console.log("Seeded:", await seed(handle.db, new Date(), SITE_URL));
+  } else {
+    console.log("Database already has data, leaving it alone.");
+  }
+  await handle.close();
 }
-await handle.close();
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
