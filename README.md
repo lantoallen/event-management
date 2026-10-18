@@ -77,10 +77,10 @@ npm run db:generate # new migration after editing src/server/db/schema.ts
 
 ## Deploying for free
 
-1. Create a free Postgres database on [Neon](https://neon.tech) and copy the pooled connection string.
-2. Import the repo on [Vercel](https://vercel.com) (Hobby plan) and add these environment variables:
-   - `DATABASE_URL`: the Neon connection string
-   - `CRON_SECRET`: any long random string
-3. Deploy. The build applies migrations and loads the sample data if the database is empty (see `vercel.json`). Two daily cron jobs reset the demo at midnight Manila time and send reminders for the next day's events.
+Import the repo on [Vercel](https://vercel.com) (Hobby plan) and add `CRON_SECRET` (any long random string) as an environment variable. Two daily cron jobs reset the demo at midnight Manila time and send reminders for the next day's events.
+
+**Without a database.** If `DATABASE_URL` isn't set, each server instance runs an in-memory Postgres (PGlite) and loads the sample data when it starts. It's the quickest way to get a live demo, but anything visitors add disappears whenever Vercel restarts the instance.
+
+**With a database.** Create a free Postgres database on [Neon](https://neon.tech), copy the pooled connection string, and add it as `DATABASE_URL`. On the next deploy the build applies migrations and loads the sample data if the database is empty (see `vercel.json`). From then on, data stays put until the daily reset.
 
 To send real emails, add `RESEND_API_KEY` and `EMAIL_FROM` from a free [Resend](https://resend.com) account. Resend only delivers to domains you've verified, so the made-up sample addresses still only show up in the inbox page.

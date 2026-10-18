@@ -47,9 +47,15 @@ export async function openPglite(dataDir?: string): Promise<DbHandle> {
 
 export const localDataDir = path.join(process.cwd(), ".data", "pglite");
 
+// Deployed without DATABASE_URL, the app keeps an in-memory database per
+// server instance and loads the sample data when it starts. Fine for a demo,
+// but anything visitors add is gone when the instance restarts.
+export const isDemoMemoryMode = () => !process.env.DATABASE_URL && !!process.env.VERCEL;
+
 export function openFromEnv({ migrate = false } = {}) {
   const url = process.env.DATABASE_URL;
-  // Serverless file systems are read-only, so PGlite can't work there.
-  if (!url && process.env.VERCEL) throw new Error("DATABASE_URL isn't set. Add your Postgres connection string in Vercel.");
-  return url ? openPostgres(url, { migrate }) : openPglite(localDataDir);
+  if (url) return openPostgres(url, { migrate });
+  // Serverless file systems are read-only, so there's no folder to keep it in.
+  if (isDemoMemoryMode()) return openPglite();
+  return openPglite(localDataDir);
 }

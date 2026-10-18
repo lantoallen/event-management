@@ -11,7 +11,7 @@ const store = globalThis as unknown as { __eventsDb?: Promise<DbHandle> };
 function getDb() {
   store.__eventsDb ??= (async () => {
     const handle = await openFromEnv();
-    // Fresh local database: load the sample data so the app isn't empty.
+    // A fresh local or in-memory database: load the sample data so the app isn't empty.
     if (handle.kind === "pglite" && (await isEmpty(handle.db))) await seed(handle.db, new Date(), SITE_URL);
     return handle;
   })().catch((err) => {
