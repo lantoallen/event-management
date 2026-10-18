@@ -40,6 +40,8 @@ export async function createHarness({ rateLimit = false } = {}) {
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
     const text = await res.text();
+    // Tests read whatever the route returned; the assertions check its shape.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let json: any = null;
     try {
       json = JSON.parse(text);
