@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Badge } from "@/components/badges";
 import { CapacityMeter } from "@/components/capacity-meter";
 import { RegisterPanel } from "@/components/register-panel";
+import { ShareButton } from "@/components/share-button";
 import { CATEGORY_LABELS } from "@/lib/categories";
 import { currentUser, load, serverApi } from "@/lib/server-api";
 import { formatFullDate, formatTimeRange } from "@/lib/time";
@@ -89,6 +90,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
             loggedIn={!!user}
             registration={event.registration}
           />
+          {event.status === "published" && <ShareButton title={event.title} path={`/events/${event.slug}`} />}
         </div>
       </aside>
     </div>
