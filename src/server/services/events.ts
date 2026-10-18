@@ -314,6 +314,34 @@ export async function cancelEvent(db: Db, eventId: string, organizerId: string, 
   });
 }
 
+// Copies an event into a new draft, a week later (or as many weeks as it
+// takes to land in the future), so recurring events take one click.
+export async function duplicateEvent(db: Db, eventId: string, organizerId: string, now: Date) {
+  const source = await getOwnedEvent(db, eventId, organizerId);
+  const week = 7 * 86_400_000;
+  const weeks = Math.max(1, Math.ceil((now.getTime() - source.startsAt.getTime()) / week) + 1);
+  const shift = weeks * week;
+  const [event] = await db
+    .insert(events)
+    .values({
+      organizerId,
+      slug: slugify(source.title),
+      title: source.title,
+      summary: source.summary,
+      description: source.description,
+      category: source.category,
+      status: "draft",
+      startsAt: new Date(source.startsAt.getTime() + shift),
+      endsAt: new Date(source.endsAt.getTime() + shift),
+      isOnline: source.isOnline,
+      location: source.location,
+      city: source.city,
+      capacity: source.capacity,
+    })
+    .returning();
+  return event;
+}
+
 export async function deleteDraft(db: Db, eventId: string, organizerId: string) {
   const event = await getOwnedEvent(db, eventId, organizerId);
   if (event.status !== "draft") {

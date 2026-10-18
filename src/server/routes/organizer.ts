@@ -7,6 +7,7 @@ import {
   cancelEvent,
   createEvent,
   deleteDraft,
+  duplicateEvent,
   getOwnedEvent,
   listOrganizerEvents,
   publishEvent,
@@ -95,6 +96,12 @@ export const organizerRoutes = new Hono<Env>()
     const { event, emailIds } = await cancelEvent(db, c.req.valid("param").id, user.id, c.get("now"));
     await deliverEmails(db, mailer, emailIds);
     return c.json({ event }, 200);
+  })
+
+  .post("/events/:id/duplicate", validate("param", idParam), async (c) => {
+    const user = requireUser(c);
+    const event = await duplicateEvent(c.get("deps").db, c.req.valid("param").id, user.id, c.get("now"));
+    return c.json({ event }, 201);
   })
 
   .delete("/events/:id", validate("param", idParam), async (c) => {

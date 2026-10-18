@@ -135,6 +135,31 @@ describe("organizer dashboard", () => {
     expect((await org.as("DELETE", `/api/organizer/events/${other.id}`)).status).toBe(200);
   });
 
+  it("duplicates an event as a draft a week later, with nobody registered", async () => {
+    const { org, event } = await setup(2);
+    const res = await org.as("POST", `/api/organizer/events/${event.id}/duplicate`);
+    expect(res.status).toBe(201);
+    const copy = res.json.event;
+    const original = (await org.as("GET", `/api/organizer/events/${event.id}`)).json.event;
+    expect(copy).toMatchObject({ status: "draft", title: original.title, capacity: 2 });
+    expect(new Date(copy.startsAt).getTime() - new Date(original.startsAt).getTime()).toBe(7 * 86_400_000);
+    expect(copy.slug).not.toBe(original.slug);
+    expect((await org.as("GET", `/api/organizer/events/${copy.id}/attendees`)).json.attendees).toHaveLength(0);
+
+    const other = await h.user();
+    expect((await other.as("POST", `/api/organizer/events/${event.id}/duplicate`)).status).toBe(403);
+  });
+
+  it("moves a copy of a past event into the future", async () => {
+    const org = await h.user();
+    const event = await h.event(org, { startsAt: h.hoursFromNow(2), endsAt: h.hoursFromNow(3) });
+    const start = h.now;
+    h.setNow(new Date(start.getTime() + 20 * 86_400_000));
+    const copy = (await org.as("POST", `/api/organizer/events/${event.id}/duplicate`)).json.event;
+    expect(new Date(copy.startsAt).getTime()).toBeGreaterThan(h.now.getTime());
+    h.setNow(start);
+  });
+
   it("validates event input with readable messages", async () => {
     const org = await h.user();
     const bad = await org.as("POST", "/api/organizer/events", {
