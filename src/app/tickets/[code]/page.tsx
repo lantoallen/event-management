@@ -1,0 +1,108 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import QRCode from "qrcode";
+import { Suspense } from "react";
+import { TicketBadge } from "@/components/badges";
+import { SITE_URL } from "@/lib/config";
+import { load, serverApi } from "@/lib/server-api";
+import { formatFullDate, formatTime, formatTimeRange } from "@/lib/time";
+import { formatTicketCode } from "@/lib/tickets";
+
+export const metadata: Metadata = { title: "Ticket" };
+
+export default function TicketPage({ params }: PageProps<"/tickets/[code]">) {
+  return (
+    <div className="mx-auto max-w-md">
+      <Link href="/tickets" className="text-sm text-muted hover:text-ink">
+        ← My tickets
+      </Link>
+      <Suspense fallback={<div className="card mt-4 h-[520px] animate-pulse" />}>
+        <Ticket params={params} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function Ticket({ params }: { params: PageProps<"/tickets/[code]">["params"] }) {
+  const { code } = await params;
+  const client = await serverApi();
+  const { ticket } = await load(client.api.me.tickets[":code"].$get({ param: { code } }), {
+    returnTo: `/tickets/${code}`,
+  });
+  const { event } = ticket;
+  const valid = ticket.status === "confirmed" && event.status !== "cancelled";
+
+  // The QR holds the ticket's URL: the door scanner reads the code out of it,
+  // and a phone camera opens this page.
+  const qr = valid
+    ? await QRCode.toString(`${SITE_URL}/tickets/${ticket.ticketCode}`, {
+        type: "svg",
+        margin: 0,
+        errorCorrectionLevel: "M",
+        color: { dark: "#1d1b18", light: "#ffffff" },
+      })
+    : null;
+
+  return (
+    <div className="card mt-4 overflow-hidden">
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <Link href={`/events/${event.slug}`} className="text-lg leading-snug font-semibold hover:underline">
+            {event.title}
+          </Link>
+          <TicketBadge
+            status={ticket.status}
+            checkedInAt={ticket.checkedInAt}
+            waitlistPosition={ticket.waitlistPosition}
+            eventStatus={event.status}
+          />
+        </div>
+        <p className="mt-2 text-sm">{formatFullDate(event.startsAt)}</p>
+        <p className="text-sm text-muted">{formatTimeRange(event.startsAt, event.endsAt)}</p>
+        <p className="mt-2 text-sm break-words">
+          {event.isOnline ? (
+            event.location ? (
+              <a href={event.location} className="link">
+                {event.location}
+              </a>
+            ) : (
+              "Online"
+            )
+          ) : (
+            <>
+              {event.location}, {event.city}
+            </>
+          )}
+        </p>
+      </div>
+
+      <div className="border-t border-dashed border-line-strong bg-surface-2 p-5 text-center">
+        {qr ? (
+          <>
+            <div
+              className="mx-auto w-56 rounded-md bg-white p-3"
+              role="img"
+              aria-label={`QR code for ticket ${formatTicketCode(ticket.ticketCode)}`}
+              dangerouslySetInnerHTML={{ __html: qr }}
+            />
+            <p className="mt-3 font-mono text-lg tracking-widest">{formatTicketCode(ticket.ticketCode)}</p>
+            <p className="text-sm text-muted">{ticket.holder.name}</p>
+            {ticket.checkedInAt ? (
+              <p className="mt-3 text-sm text-ok">Checked in at {formatTime(ticket.checkedInAt)}</p>
+            ) : (
+              <p className="mt-3 text-[13px] text-muted">Show this at the door. They can also type the code.</p>
+            )}
+          </>
+        ) : event.status === "cancelled" ? (
+          <p className="py-6 text-sm">This event was cancelled, so the ticket won&apos;t be used.</p>
+        ) : ticket.status === "waitlisted" ? (
+          <p className="py-6 text-sm">
+            You&apos;re number {ticket.waitlistPosition} on the waitlist. Your QR code shows up here once a spot opens.
+          </p>
+        ) : (
+          <p className="py-6 text-sm">You cancelled this registration.</p>
+        )}
+      </div>
+    </div>
+  );
+}
