@@ -9,12 +9,21 @@ export type DbHandle = { db: Db; close: () => Promise<void>; kind: "postgres" | 
 
 const migrationsFolder = path.join(process.cwd(), "drizzle");
 
+// Neon's connection strings include `channel_binding=require`. postgres.js
+// doesn't know that option and passes it to the server as a setting, which
+// the server rejects, so it's dropped. sslmode stays and still turns on TLS.
+export function cleanConnectionString(url: string) {
+  const parsed = new URL(url);
+  parsed.searchParams.delete("channel_binding");
+  return parsed.toString();
+}
+
 // Real Postgres (Neon in production). `prepare: false` keeps it working
 // behind Neon's pooled connection string, which doesn't support prepared statements.
 export async function openPostgres(url: string, { migrate = false } = {}): Promise<DbHandle> {
   const { default: postgres } = await import("postgres");
   const { drizzle } = await import("drizzle-orm/postgres-js");
-  const client = postgres(url, { prepare: false, max: 5, onnotice: () => {} });
+  const client = postgres(cleanConnectionString(url), { prepare: false, max: 5, onnotice: () => {} });
   const db = drizzle(client, { schema });
   if (migrate) {
     const { migrate: run } = await import("drizzle-orm/postgres-js/migrator");
