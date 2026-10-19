@@ -6,6 +6,7 @@ import { TicketBadge } from "@/components/badges";
 import { SITE_URL } from "@/lib/config";
 import { load, serverApi } from "@/lib/server-api";
 import { formatFullDate, formatTime, formatTimeRange } from "@/lib/time";
+import { mapsUrl } from "@/lib/maps";
 import { formatTicketCode } from "@/lib/tickets";
 
 export const metadata: Metadata = { title: "Ticket" };
@@ -70,7 +71,10 @@ async function Ticket({ params }: { params: PageProps<"/tickets/[code]">["params
             )
           ) : (
             <>
-              {event.location}, {event.city}
+              {event.location}, {event.city}{" "}
+              <a href={mapsUrl(event.location!, event.city)} className="link whitespace-nowrap" target="_blank" rel="noreferrer">
+                Map
+              </a>
             </>
           )}
         </p>
