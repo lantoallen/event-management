@@ -4,15 +4,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { api, errorMessage, unwrap } from "@/lib/api";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
-// Only send people back to pages on this site.
-function safeNext(value: string | null) {
-  return value && value.startsWith("/") && !value.startsWith("//") ? value : null;
-}
 
 export function AuthForm({ mode, demo }: { mode: "login" | "signup"; demo: boolean }) {
   const router = useRouter();
-  const next = safeNext(useSearchParams().get("next"));
+  // Only ever send people back to a page on this site.
+  const next = safeRedirectPath(useSearchParams().get("next"));
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
