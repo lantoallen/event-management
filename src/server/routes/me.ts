@@ -1,8 +1,12 @@
 import { Hono } from "hono";
+import { deleteCookie } from "hono/cookie";
+import { z } from "zod";
 import { conflict } from "../errors";
-import { requireUser, type Env } from "../http";
+import { rateLimit, requireUser, setSessionCookie, ticketUrl, validate, type Env } from "../http";
+import { changePassword, deleteAccount, updateName } from "../services/account";
+import { SESSION_COOKIE } from "../services/auth";
 import { ticketCalendar } from "../services/calendar";
-import { listInbox } from "../services/email";
+import { deliverEmails, listInbox } from "../services/email";
 import { getTicket, listMyTickets } from "../services/registrations";
 
 export const meRoutes = new Hono<Env>()
@@ -27,6 +31,49 @@ export const meRoutes = new Hono<Env>()
       "Content-Type": "text/calendar; charset=utf-8",
       "Content-Disposition": `attachment; filename="${ticket.event.slug}.ics"`,
     });
+  })
+
+  .patch(
+    "/profile",
+    validate("json", z.object({ name: z.string().trim().min(2, "Enter your name.").max(80, "That name is too long.") })),
+    async (c) => {
+      const user = requireUser(c);
+      const { db, demo } = c.get("deps");
+      return c.json({ user: await updateName(db, user, c.req.valid("json").name, { demo: !!demo }) }, 200);
+    },
+  )
+
+  .post(
+    "/password",
+    validate(
+      "json",
+      z.object({
+        current: z.string().max(200).optional(),
+        next: z.string().min(8, "Use at least 8 characters for your new password.").max(200),
+      }),
+    ),
+    async (c) => {
+      rateLimit(c, "password", { max: 10, windowMs: 10 * 60 * 1000 });
+      const user = requireUser(c);
+      const { db, demo } = c.get("deps");
+      const session = await changePassword(db, user, c.req.valid("json"), { demo: !!demo, now: c.get("now") });
+      setSessionCookie(c, session.token, session.expiresAt);
+      return c.json({ ok: true }, 200);
+    },
+  )
+
+  .delete("/", validate("json", z.object({ password: z.string().max(200).optional() })), async (c) => {
+    rateLimit(c, "delete-account", { max: 10, windowMs: 10 * 60 * 1000 });
+    const user = requireUser(c);
+    const { db, mailer, demo } = c.get("deps");
+    const { emailIds } = await deleteAccount(db, user, c.req.valid("json").password, {
+      demo: !!demo,
+      now: c.get("now"),
+      ticketUrl: ticketUrl(c),
+    });
+    await deliverEmails(db, mailer, emailIds);
+    deleteCookie(c, SESSION_COOKIE, { path: "/" });
+    return c.json({ ok: true }, 200);
   })
 
   .get("/inbox", async (c) => {
