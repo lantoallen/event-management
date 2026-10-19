@@ -30,7 +30,7 @@ export async function queueReminders(db: Db, now: Date, ticketUrl: (code: string
       .where(inArray(registrations.id, due.map((d) => d.reg.id)));
     return queueEmails(
       tx,
-      due.map((d) => templates.reminder(d.user, d.event, ticketUrl(d.reg.ticketCode))),
+      due.map((d) => templates.reminder(d.user, d.event, ticketUrl(d.reg.ticketCode), now)),
     );
   });
 }
