@@ -6,7 +6,7 @@ import { CapacityMeter } from "@/components/capacity-meter";
 import { EventCard } from "@/components/event-card";
 import { RegisterPanel } from "@/components/register-panel";
 import { ShareButton } from "@/components/share-button";
-import { CATEGORY_LABELS } from "@/lib/categories";
+import { CategoryLabel } from "@/components/category-label";
 import { mapsUrl } from "@/lib/maps";
 import { currentUser, load, serverApi } from "@/lib/server-api";
 import { formatFullDate, formatTimeRange } from "@/lib/time";
@@ -48,7 +48,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
     <div className="mt-4 grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-[1fr_320px] md:grid-rows-[auto_auto_1fr]">
       <header className="md:col-start-1">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-          <span>{CATEGORY_LABELS[event.category]}</span>
+          <CategoryLabel category={event.category} />
           {event.status === "draft" && <Badge tone="muted">Draft, only you can see this</Badge>}
           {event.status === "cancelled" && <Badge tone="bad">Cancelled</Badge>}
           {event.visibility === "unlisted" && <span>· Unlisted, only people with the link can see it</span>}
@@ -74,7 +74,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
       )}
 
       <aside className="row-start-2 md:col-start-2 md:row-span-3 md:row-start-1 md:sticky md:top-6 md:self-start">
-        <div className="card space-y-4 p-5">
+        <div className="card relative space-y-4 overflow-hidden p-5">
           <div>
             <p className="font-medium">{formatFullDate(event.startsAt)}</p>
             <p className="text-sm text-muted">{formatTimeRange(event.startsAt, event.endsAt)}</p>
