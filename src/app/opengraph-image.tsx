@@ -23,12 +23,10 @@ export default async function Image() {
             {APP_NAME}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div style={{ fontSize: 64, fontWeight: 700, lineHeight: 1.1, maxWidth: 640 }}>
-              Register in one click. Show a QR code at the door.
+            <div style={{ fontSize: 60, fontWeight: 700, lineHeight: 1.1, maxWidth: 640 }}>
+              Event registration with QR tickets and door check-in
             </div>
-            <div style={{ fontSize: 28, color: "#6a655d", maxWidth: 640 }}>
-              Waitlists, check-in, and attendee exports for organizers.
-            </div>
+            <div style={{ fontSize: 28, color: "#6a655d", maxWidth: 640 }}>A demo project by Allen Lanto</div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", width: 340, alignSelf: "center", ...ticket }}>

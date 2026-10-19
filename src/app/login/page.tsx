@@ -8,7 +8,6 @@ export default function Page() {
   return (
     <div className="mx-auto max-w-sm">
       <h1 className="text-2xl font-semibold tracking-tight">Log in</h1>
-      <p className="mt-1 text-sm text-muted">Welcome back.</p>
       <Suspense>
         <AuthForm mode="login" />
       </Suspense>
