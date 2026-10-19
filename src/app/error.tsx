@@ -16,7 +16,7 @@ export default function Error({ error, retry }: { error: unknown; retry: () => v
         <button type="button" className="btn-primary" onClick={() => retry()}>
           Try again
         </button>
-        <Link href="/" className="btn-secondary">
+        <Link href="/events" className="btn-secondary">
           Browse events
         </Link>
       </div>

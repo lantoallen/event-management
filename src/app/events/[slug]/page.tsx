@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps<"/events/[slug]">):
 export default function EventPage({ params }: PageProps<"/events/[slug]">) {
   return (
     <>
-      <Link href="/" className="text-sm text-muted hover:text-ink">
+      <Link href="/events" className="text-sm text-muted hover:text-ink">
         ← All events
       </Link>
       <Suspense fallback={<div className="mt-6 h-96 animate-pulse rounded-lg bg-surface-2" />}>

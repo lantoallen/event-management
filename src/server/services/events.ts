@@ -162,6 +162,25 @@ function toCard({ event, organizerName, confirmed, waitlisted }: CardRow) {
   };
 }
 
+// Numbers for the home page: upcoming public events in the next 30 days,
+// overall and per category.
+export async function eventsOverview(db: Db, now: Date) {
+  const rows = await db
+    .select({ category: events.category, count: sql<number>`count(*)`.mapWith(Number) })
+    .from(events)
+    .where(
+      and(
+        eq(events.status, "published"),
+        eq(events.visibility, "public"),
+        gt(events.endsAt, now),
+        lt(events.startsAt, manilaStartOfDay(now, 30)),
+      ),
+    )
+    .groupBy(events.category);
+  const byCategory = Object.fromEntries(rows.map((r) => [r.category, r.count])) as Partial<Record<EventCategory, number>>;
+  return { total: rows.reduce((n, r) => n + r.count, 0), byCategory };
+}
+
 export async function getEventPage(db: Db, slug: string, viewerId: string | null, now: Date) {
   const counts = countsFor(db);
   const [row] = await db

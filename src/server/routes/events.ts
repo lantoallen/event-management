@@ -3,7 +3,7 @@ import { z } from "zod";
 import { categories } from "../db/schema";
 import { requireUser, ticketUrl, validate, type Env } from "../http";
 import { deliverEmails } from "../services/email";
-import { getEventPage, listPublicEvents } from "../services/events";
+import { eventsOverview, getEventPage, listPublicEvents } from "../services/events";
 import { cancelRegistration, register } from "../services/registrations";
 
 const listQuery = z.object({
@@ -19,6 +19,10 @@ export const eventRoutes = new Hono<Env>()
   .get("/", validate("query", listQuery), async (c) => {
     const result = await listPublicEvents(c.get("deps").db, c.req.valid("query"), c.get("now"));
     return c.json(result, 200);
+  })
+
+  .get("/overview", async (c) => {
+    return c.json(await eventsOverview(c.get("deps").db, c.get("now")), 200);
   })
 
   .get("/:slug", async (c) => {

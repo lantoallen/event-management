@@ -4,14 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/", label: "Browse" },
+  { href: "/events", label: "Browse" },
   { href: "/tickets", label: "My tickets", short: "Tickets" },
   { href: "/inbox", label: "Inbox" },
   { href: "/organize", label: "Organize" },
 ];
 
 function isActive(href: string, pathname: string) {
-  return href === "/" ? pathname === "/" || pathname.startsWith("/events") : pathname.startsWith(href);
+  return pathname.startsWith(href);
 }
 
 // Rendered without a pathname while the page streams in, then with it.
