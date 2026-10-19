@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { CATEGORY_TINT } from "@/lib/categories";
 import { formatDay, formatMonth, formatTime, formatWeekdayDate, relativeDays } from "@/lib/time";
 import type { EventCategory } from "@/server/db/schema";
 
@@ -16,10 +15,11 @@ export type EventCardData = {
   capacity: number;
 };
 
-export function DateBlock({ date, category }: { date: string; category: EventCategory }) {
+// The date sits on the left like a ticket stub, split off by a dashed line.
+export function DateBlock({ date }: { date: string }) {
   return (
-    <div className={`flex w-14 shrink-0 flex-col items-center justify-center rounded-md py-2 ${CATEGORY_TINT[category]}`}>
-      <span className="text-[11px] font-semibold tracking-wider">{formatMonth(date)}</span>
+    <div className="flex w-12 shrink-0 flex-col items-center border-r border-dashed border-line-strong pt-0.5 pr-4">
+      <span className="text-[11px] font-semibold tracking-wider text-muted">{formatMonth(date)}</span>
       <span className="text-2xl leading-tight font-semibold">{formatDay(date)}</span>
     </div>
   );
@@ -40,7 +40,7 @@ export function EventCard({ event }: { event: EventCardData }) {
       href={`/events/${event.slug}`}
       className="card group flex gap-4 p-4 transition-colors hover:border-line-strong"
     >
-      <DateBlock date={event.startsAt} category={event.category} />
+      <DateBlock date={event.startsAt} />
       <div className="min-w-0 flex-1">
         <p className="text-[13px] text-muted">
           {soon ?? formatWeekdayDate(event.startsAt)}, {formatTime(event.startsAt)} · {event.city}
@@ -61,7 +61,7 @@ export function EventCard({ event }: { event: EventCardData }) {
 export function EventCardSkeleton() {
   return (
     <div className="card flex gap-4 p-4">
-      <div className="h-16 w-14 rounded-md bg-surface-2" />
+      <div className="h-12 w-12 rounded bg-surface-2" />
       <div className="flex-1 space-y-2 py-1">
         <div className="h-3 w-1/3 rounded bg-surface-2" />
         <div className="h-4 w-2/3 rounded bg-surface-2" />
