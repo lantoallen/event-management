@@ -17,6 +17,11 @@
   --warn-soft: #fbf0dc;
   --bad: #b3261e;
   --bad-soft: #fbe7e5;
+  /* The home page's hero panel: the app icon's green, with cream text. */
+  --hero: #0f3d33;
+  --hero-ink: #f4f1e8;
+  --hero-muted: #a9c2b8;
+  --paper: #fffdf8;
   color-scheme: light;
 }
 
@@ -38,6 +43,10 @@
     --warn-soft: #2e2413;
     --bad: #f08a80;
     --bad-soft: #351b19;
+    --hero: #0d2e27;
+    --hero-ink: #f4f1e8;
+    --hero-muted: #9db8ad;
+    --paper: #fbf8f0;
     color-scheme: dark;
   }
 }
@@ -59,6 +68,10 @@
   --color-warn-soft: var(--warn-soft);
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
+  --color-hero: var(--hero);
+  --color-hero-ink: var(--hero-ink);
+  --color-hero-muted: var(--hero-muted);
+  --color-paper: var(--paper);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, Menlo, monospace;
 }

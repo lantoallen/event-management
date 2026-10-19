@@ -34,7 +34,7 @@ async function TicketList() {
       <div className="card mt-6 p-8 text-center">
         <p className="font-medium">No tickets yet.</p>
         <p className="mt-1 text-sm text-muted">
-          <Link href="/" className="link">
+          <Link href="/events" className="link">
             Find something to go to
           </Link>{" "}
           and your tickets will show up here.

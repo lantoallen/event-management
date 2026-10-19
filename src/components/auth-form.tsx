@@ -30,7 +30,7 @@ export function AuthForm({ mode, demo }: { mode: "login" | "signup"; demo: boole
         } else {
           await unwrap(api.api.auth.login.$post({ json: { email, password } }));
         }
-        finish("/");
+        finish("/events");
       } catch (err) {
         setError(errorMessage(err));
       }

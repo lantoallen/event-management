@@ -26,6 +26,15 @@ describe("sample data", () => {
     expect(json.events.some((e: { status: string }) => e.status !== "published")).toBe(false);
   });
 
+  it("counts upcoming public events for the home page", async () => {
+    const { json } = await h.request("GET", "/api/events/overview");
+    // 14 upcoming published events in the sample data; the mural day falls
+    // on day 30, just outside the window.
+    expect(json.total).toBe(13);
+    expect(json.byCategory.tech).toBe(3);
+    expect(json.byCategory.food).toBe(2);
+  });
+
   it("filters by category and search text", async () => {
     const food = await h.request("GET", "/api/events?category=food");
     expect(food.json.events.every((e: { category: string }) => e.category === "food")).toBe(true);

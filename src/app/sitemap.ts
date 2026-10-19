@@ -6,6 +6,7 @@ import { SITE_URL } from "@/lib/config";
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: SITE_URL, changeFrequency: "daily", priority: 1 },
+    { url: `${SITE_URL}/events`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/login`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/signup`, changeFrequency: "yearly", priority: 0.3 },
   ];

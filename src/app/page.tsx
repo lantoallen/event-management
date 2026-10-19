@@ -1,199 +1,243 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import QRCode from "qrcode";
 import { Suspense } from "react";
-import { EventCard, EventCardSkeleton } from "@/components/event-card";
-import { CATEGORY_LABELS } from "@/lib/categories";
+import { EventCard } from "@/components/event-card";
+import { CATEGORY_COLOR, CATEGORY_LABELS } from "@/lib/categories";
+import { SITE_URL } from "@/lib/config";
 import { load, serverApi } from "@/lib/server-api";
-import { formatMonthName, manilaDayKey, manilaStartOfDay } from "@/lib/time";
-import { categories, type EventCategory } from "@/server/db/schema";
+import { formatTime, formatWeekdayDate } from "@/lib/time";
+import { categories } from "@/server/db/schema";
 
-type Search = { q?: string; category?: string; when?: string; page?: string };
-
-const WHEN = [
-  ["all", "Any time"],
-  ["today", "Today"],
-  ["weekend", "This weekend"],
-  ["week", "Next 7 days"],
-  ["month", "Next 30 days"],
-] as const;
-
-const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-
-async function readSearch(searchParams: PageProps<"/">["searchParams"]): Promise<Search> {
-  const sp = await searchParams;
-  return { q: first(sp.q), category: first(sp.category), when: first(sp.when), page: first(sp.page) };
-}
-
-function hrefWith(search: Search, changes: Partial<Search>) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries({ ...search, page: undefined, ...changes })) {
-    if (value && !(key === "when" && value === "all")) params.set(key, value);
-  }
-  const qs = params.toString();
-  return qs ? `/?${qs}` : "/";
-}
-
-export default function BrowsePage({ searchParams }: PageProps<"/">) {
+export default function HomePage({ searchParams }: PageProps<"/">) {
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Upcoming events</h1>
-      <Suspense fallback={<div className="mt-6 h-[92px]" />}>
-        <Filters searchParams={searchParams} />
+      <Suspense>
+        <OldBrowseLinks searchParams={searchParams} />
       </Suspense>
-      <Suspense fallback={<ResultsSkeleton />}>
-        <Results searchParams={searchParams} />
-      </Suspense>
+
+      <section className="-mt-2 overflow-hidden rounded-2xl bg-hero text-hero-ink">
+        <div className="grid items-center gap-10 px-6 py-10 sm:px-10 md:grid-cols-[1.1fr_1fr] md:py-14">
+          <div>
+            <h1 className="text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl">
+              What&apos;s on around Batangas
+            </h1>
+            <Suspense fallback={<p className="mt-4 h-14 max-w-md text-lg text-hero-muted" />}>
+              <HeroCount />
+            </Suspense>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href="/events" className="btn bg-hero-ink text-hero hover:opacity-90">
+                Browse events
+              </Link>
+              <Link href="/organize/new" className="btn border border-hero-muted/50 text-hero-ink hover:bg-white/10">
+                Host an event
+              </Link>
+            </div>
+          </div>
+          <Suspense fallback={<div className="mx-auto h-[360px] w-full max-w-sm rounded-xl bg-white/5" />}>
+            <NextUpTicket />
+          </Suspense>
+        </div>
+      </section>
+
+      <section className="mt-14">
+        <div className="mb-4 flex items-baseline justify-between gap-4">
+          <h2 className="text-xl font-semibold tracking-tight">This week</h2>
+          <Link href="/events" className="link text-sm">
+            See all events
+          </Link>
+        </div>
+        <Suspense fallback={<div className="h-72 rounded-lg bg-surface-2" />}>
+          <ThisWeek />
+        </Suspense>
+      </section>
+
+      <section className="mt-14">
+        <h2 className="mb-4 text-xl font-semibold tracking-tight">Find your kind of thing</h2>
+        <Suspense fallback={<div className="h-40 rounded-lg bg-surface-2" />}>
+          <Categories />
+        </Suspense>
+      </section>
+
+      <section className="mt-14 grid items-center gap-10 rounded-2xl border border-line bg-surface p-6 sm:p-10 md:grid-cols-2">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-balance">Running an event?</h2>
+          <p className="mt-3 leading-relaxed text-muted">
+            Post it, share the link, and let people register. When it fills up, a waitlist takes over and moves people
+            up on its own if someone cancels.
+          </p>
+          <p className="mt-3 leading-relaxed text-muted">
+            On the day, open the check-in page on your phone and scan tickets at the door. You&apos;ll see who&apos;s
+            here, who isn&apos;t, and you can message everyone if plans change.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/organize/new" className="btn-primary">
+              Create an event
+            </Link>
+            <Link href="/login?next=/organize" className="btn-secondary">
+              See the organizer side
+            </Link>
+          </div>
+        </div>
+        <CheckInPreview />
+      </section>
     </>
   );
 }
 
-async function Filters({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
-  const search = await readSearch(searchParams);
+// Browse used to live here, so old links like /?category=food still work.
+async function OldBrowseLinks({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
+  const sp = await searchParams;
+  const params = new URLSearchParams();
+  for (const key of ["q", "category", "when", "page"]) {
+    const value = sp[key];
+    if (typeof value === "string" && value) params.set(key, value);
+  }
+  if (params.size > 0) redirect(`/events?${params}`);
+  return null;
+}
+
+async function HeroCount() {
+  const client = await serverApi();
+  const { total } = await load(client.api.events.overview.$get());
   return (
-    <div className="mt-6 space-y-3">
-      {/* Phones: search box and button on one row, the date filter under them. Wider: one row. */}
-      <form action="/" className="grid grid-cols-[1fr_auto] gap-2 sm:flex">
-        {search.category && <input type="hidden" name="category" value={search.category} />}
-        <label className="sr-only" htmlFor="q">
-          Search
-        </label>
-        <input
-          id="q"
-          name="q"
-          type="search"
-          defaultValue={search.q}
-          placeholder="Search by title or city"
-          className="input sm:max-w-sm"
-        />
-        <label className="sr-only" htmlFor="when">
-          When
-        </label>
-        <select
-          id="when"
-          name="when"
-          defaultValue={search.when ?? "all"}
-          className="input col-span-2 row-start-2 sm:w-44"
-        >
-          {WHEN.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <button className="btn-secondary">Search</button>
-      </form>
-      {/* One line that scrolls sideways on narrow screens instead of wrapping. */}
-      <div className="-mx-4 flex gap-x-5 overflow-x-auto border-b border-line px-4 text-sm whitespace-nowrap [scrollbar-width:none] sm:mx-0 sm:px-0">
-        <CategoryLink href={hrefWith(search, { category: undefined })} active={!search.category}>
-          All
-        </CategoryLink>
-        {categories.map((c) => (
-          <CategoryLink key={c} href={hrefWith(search, { category: c })} active={search.category === c}>
-            {CATEGORY_LABELS[c]}
-          </CategoryLink>
-        ))}
-      </div>
-    </div>
+    <p className="mt-4 max-w-md text-lg leading-relaxed text-hero-muted">
+      {total === 0
+        ? "Nothing's posted yet. Be the first to put something on."
+        : `${total} ${total === 1 ? "event" : "events"} in the next 30 days, from trail runs to coding workshops. Register in a click and show a QR code at the door.`}
+    </p>
   );
 }
 
-function CategoryLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
+// The next event with room left, drawn as a paper ticket. The QR code works:
+// it opens the event page.
+async function NextUpTicket() {
+  const client = await serverApi();
+  const { events } = await load(client.api.events.$get({ query: {} }));
+  const event = events.find((e) => e.spotsLeft > 0) ?? events[0];
+  if (!event) return null;
+  const url = `${SITE_URL}/events/${event.slug}`;
+  const qr = await QRCode.toString(url, {
+    type: "svg",
+    margin: 0,
+    errorCorrectionLevel: "M",
+    color: { dark: "#1d1b18", light: "#00000000" },
+  });
+
   return (
     <Link
-      href={href}
-      aria-current={active ? "true" : undefined}
-      className={`-mb-px border-b-2 py-2 ${active ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink"}`}
+      href={`/events/${event.slug}`}
+      className="group relative mx-auto block w-full max-w-sm rounded-xl bg-paper text-[#1d1b18] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.6)] transition-transform md:-rotate-3 md:hover:rotate-0"
     >
-      {children}
+      <div className="p-6">
+        <p className="text-xs font-semibold tracking-[0.18em] text-[#0f6b55] uppercase">Next up</p>
+        <p className="mt-2 text-xl leading-snug font-semibold text-balance">{event.title}</p>
+        <p className="mt-3 text-sm text-[#5d574f]">
+          {formatWeekdayDate(event.startsAt)}, {formatTime(event.startsAt)}
+          <br />
+          {event.isOnline ? "Online" : event.city} · {event.organizerName}
+        </p>
+      </div>
+      {/* The tear line, with notches cut out of both edges. */}
+      <div className="relative border-t-2 border-dashed border-[#d9d3c7]">
+        <span className="absolute -top-3 -left-3 h-6 w-6 rounded-full bg-hero" />
+        <span className="absolute -top-3 -right-3 h-6 w-6 rounded-full bg-hero" />
+      </div>
+      <div className="flex items-center gap-5 p-6">
+        <div className="h-24 w-24 shrink-0" aria-hidden="true" dangerouslySetInnerHTML={{ __html: qr }} />
+        <div className="text-sm">
+          <p className="font-medium">
+            {event.spotsLeft > 0 ? `${event.spotsLeft} ${event.spotsLeft === 1 ? "spot" : "spots"} left` : "Waitlist open"}
+          </p>
+          <p className="mt-1 text-[#5d574f]">Scan it, or tap here, to see the event.</p>
+        </div>
+      </div>
     </Link>
   );
 }
 
-async function Results({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
-  const search = await readSearch(searchParams);
+async function ThisWeek() {
   const client = await serverApi();
-  const category = categories.includes(search.category as EventCategory) ? search.category : undefined;
-  const { events, page, hasMore } = await load(
-    client.api.events.$get({
-      query: {
-        q: search.q,
-        category: category as EventCategory | undefined,
-        when: search.when as "all" | undefined,
-        page: search.page,
-      },
-    }),
-  );
-
+  const { events } = await load(client.api.events.$get({ query: { when: "week" } }));
   if (events.length === 0) {
     return (
-      <div className="card mt-6 p-8 text-center">
-        <p className="font-medium">Nothing matches that.</p>
-        <p className="mt-1 text-sm text-muted">
-          Try another search, or{" "}
-          <Link href="/" className="link">
-            see everything coming up
-          </Link>
-          .
-        </p>
-      </div>
+      <p className="card p-6 text-sm text-muted">
+        Nothing this week.{" "}
+        <Link href="/events" className="link">
+          See what&apos;s coming up later
+        </Link>
+        .
+      </p>
     );
   }
-
   return (
-    <>
-      {groupByWhen(events, new Date()).map((group) => (
-        <section key={group.label} className="mt-8 first:mt-6">
-          <h2 className="mb-3 text-sm font-medium text-muted">{group.label}</h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            {group.events.map((event) => (
-              <EventCard key={event.slug} event={event} />
-            ))}
-          </div>
-        </section>
-      ))}
-      {(page > 1 || hasMore) && (
-        <div className="mt-6 flex justify-between text-sm">
-          {page > 1 ? (
-            <Link className="btn-secondary" href={hrefWith(search, { page: String(page - 1) })}>
-              Previous
-            </Link>
-          ) : (
-            <span />
-          )}
-          {hasMore && (
-            <Link className="btn-secondary" href={hrefWith(search, { page: String(page + 1) })}>
-              More events
-            </Link>
-          )}
-        </div>
-      )}
-    </>
-  );
-}
-
-function ResultsSkeleton() {
-  return (
-    <div className="mt-6 grid gap-3 md:grid-cols-2" aria-hidden="true">
-      {Array.from({ length: 6 }, (_, i) => (
-        <EventCardSkeleton key={i} />
+    <div className="grid gap-3 md:grid-cols-2">
+      {events.slice(0, 4).map((event) => (
+        <EventCard key={event.slug} event={event} />
       ))}
     </div>
   );
 }
 
-// "Next 7 days", then one group per month, so a long list has landmarks.
-function groupByWhen<T extends { startsAt: string }>(events: T[], now: Date) {
-  const weekEnd = manilaStartOfDay(now, 7);
-  const thisMonth = manilaDayKey(now).slice(0, 7);
-  const groups: { label: string; events: T[] }[] = [];
-  for (const event of events) {
-    const start = new Date(event.startsAt);
-    let label: string;
-    if (start < weekEnd) label = "Next 7 days";
-    else if (manilaDayKey(start).slice(0, 7) === thisMonth) label = `Later in ${formatMonthName(start)}`;
-    else label = formatMonthName(start);
-    const last = groups.at(-1);
-    if (last?.label === label) last.events.push(event);
-    else groups.push({ label, events: [event] });
-  }
-  return groups;
+async function Categories() {
+  const client = await serverApi();
+  const { byCategory } = await load(client.api.events.overview.$get());
+  return (
+    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {categories.map((c) => {
+        const count = byCategory[c] ?? 0;
+        return (
+          <li key={c}>
+            <Link
+              href={`/events?category=${c}`}
+              className="card flex h-full flex-col justify-between gap-6 p-4 transition-colors hover:border-line-strong"
+            >
+              <span className="h-2.5 w-2.5 rounded-sm" style={{ background: CATEGORY_COLOR[c] }} aria-hidden="true" />
+              <span>
+                <span className="block font-medium">{CATEGORY_LABELS[c]}</span>
+                <span className="text-[13px] text-muted">
+                  {count === 0 ? "Nothing yet" : `${count} coming up`}
+                </span>
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// A still of the check-in screen, built from the same pieces the real one uses.
+function CheckInPreview() {
+  const recent = [
+    ["Joshua Garcia", "6:04 PM"],
+    ["Camille Comia", "6:02 PM"],
+    ["Rafael Reyes", "5:58 PM"],
+  ];
+  return (
+    <div className="rounded-xl border border-line bg-bg p-4 sm:p-5" aria-label="Preview of the check-in screen" role="img">
+      <div className="flex items-baseline justify-between text-sm">
+        <span className="text-muted">Batangas Dev Meetup · Check-in</span>
+        <span className="font-semibold tabular-nums">
+          34 <span className="font-normal text-muted">of 47</span>
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
+        <div className="h-full w-[72%] rounded-full bg-accent" />
+      </div>
+      <div className="mt-4 rounded-lg border border-ok/30 bg-ok-soft p-4">
+        <p className="text-sm font-medium text-ok">Checked in</p>
+        <p className="mt-0.5 text-lg font-semibold">Andrea Santos</p>
+        <p className="font-mono text-[13px] text-muted">QR239-9282R</p>
+      </div>
+      <ul className="mt-4 divide-y divide-line rounded-lg border border-line bg-surface text-sm">
+        {recent.map(([name, time]) => (
+          <li key={name} className="flex justify-between px-3 py-2">
+            <span>{name}</span>
+            <span className="text-muted tabular-nums">{time}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
