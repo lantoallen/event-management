@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CategoryLabel } from "./category-label";
 import { formatDay, formatMonth, formatTime, formatWeekdayDate, relativeDays } from "@/lib/time";
 import type { EventCategory } from "@/server/db/schema";
 
@@ -50,6 +51,9 @@ export function EventCard({ event }: { event: EventCardData }) {
         </h3>
         <p className="mt-1 line-clamp-2 text-sm text-muted">{event.summary}</p>
         <p className="mt-2 flex flex-wrap gap-x-3 text-[13px]">
+          <span className="text-muted">
+            <CategoryLabel category={event.category} />
+          </span>
           <span className="text-muted">{event.organizerName}</span>
           <Availability spotsLeft={event.spotsLeft} capacity={event.capacity} />
         </p>

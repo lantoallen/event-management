@@ -3,6 +3,7 @@ import Link from "next/link";
 import QRCode from "qrcode";
 import { Suspense } from "react";
 import { TicketBadge } from "@/components/badges";
+import { TicketNotches } from "@/components/category-label";
 import { SITE_URL } from "@/lib/config";
 import { load, serverApi } from "@/lib/server-api";
 import { formatFullDate, formatTime, formatTimeRange } from "@/lib/time";
@@ -80,7 +81,8 @@ async function Ticket({ params }: { params: PageProps<"/tickets/[code]">["params
         </p>
       </div>
 
-      <div className="border-t border-dashed border-line-strong bg-surface-2 p-5 text-center">
+      <div className="relative border-t-2 border-dashed border-line-strong bg-surface-2 p-5 text-center">
+        <TicketNotches inset={1} />
         {qr ? (
           <>
             <div

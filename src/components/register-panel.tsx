@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { api, errorMessage, unwrap } from "@/lib/api";
+import { TicketNotches } from "./category-label";
 
 type Props = {
   eventId: string;
@@ -114,7 +115,9 @@ export function RegisterPanel({ eventId, slug, eventStatus, started, spotsLeft, 
   }
 
   return (
-    <div className="space-y-3 border-t border-line pt-4">
+    // The tear line of the ticket: what you're signing up for above, the action below.
+    <div className="relative space-y-3 border-t-2 border-dashed border-line pt-4">
+      <TicketNotches inset={21} />
       {body}
       {error && (
         <p role="alert" className="text-sm text-bad">
