@@ -1,8 +1,8 @@
 # Events
 
-An event registration app. People browse events, register, and get a QR ticket. Organizers create events, see who's coming, and check people in at the door by scanning tickets with their phone.
+An event registration app for free events: meetups, workshops, runs, school org events. People browse events, register, and get a QR ticket. Organizers create events, see who's coming, message attendees, and check people in at the door by scanning tickets with their phone.
 
-It's a portfolio project, so the people and events are made up and the data resets every day. You can sign in as a sample attendee or organizer from the login page without making an account.
+The live link runs in demo mode: the people and events are made up, the data resets every day, and you can sign in as a sample attendee or organizer from the login page. With demo mode off, the same code runs as a normal app with real accounts (see [Using it for real](#using-it-for-real)).
 
 **Live demo:** https://event-management-two-alpha.vercel.app
 
@@ -19,13 +19,18 @@ It's a portfolio project, so the people and events are made up and the data rese
 - Register in one click. When an event is full you join the waitlist and see your place in line
 - Get a ticket with a QR code. Online events only show the meeting link once you have a confirmed spot
 - Cancel or leave the waitlist. If you give up a spot, the next person in line gets it automatically
-- An inbox page shows every email the app would send you (confirmations, waitlist updates, reminders, cancellations)
+- Add an event to Apple Calendar, Outlook, or Google Calendar, and open the venue in Google Maps
+- An inbox page keeps a copy of every email the app sends you
+- Account settings: change your name or password, reset a forgotten password by email, or delete your account
 
 **For organizers**
 - Create events as drafts or publish right away, edit them, cancel them
 - A dashboard with going, waitlist, checked-in, and cancelled counts, plus a chart of sign-ups per day
 - Attendee list with filters and search, and a CSV export
 - A check-in page that scans QR tickets with the phone camera, or takes the code typed in by hand. It catches tickets that were already used, cancelled, still waitlisted, or for a different event
+- Message everyone going (and optionally the waitlist) by email, limited to 5 messages an hour per event
+- Unlisted events that stay out of browse and search but work for anyone with the link
+- Duplicate an event as a new draft for recurring meetups
 - Raising the capacity moves people off the waitlist. Changing the time or place emails everyone
 
 ## How it's built
@@ -83,12 +88,22 @@ npm run lint
 npm run db:generate # new migration after editing src/server/db/schema.ts
 ```
 
+## Using it for real
+
+Demo mode is controlled by `DEMO_MODE`:
+
+- `DEMO_MODE=true`: loads the sample data, shows the one-click sample accounts, and lets the daily cron job reset everything. This is what the live link uses.
+- `DEMO_MODE=false`: a normal app. No sample data is ever loaded, there are no sample accounts, and the reset endpoint refuses to run, so a real database can't be wiped by accident.
+- Unset: on for local development without a database, off everywhere else.
+
+For real use you'll also want email, since confirmations, reminders, password resets, and organizer messages all go out by email. Add `RESEND_API_KEY` and `EMAIL_FROM` from a free [Resend](https://resend.com) account with a verified domain. Without it, emails are only kept on each person's inbox page and password reset links can't be sent.
+
+What it doesn't do: paid tickets, multiple ticket types, or co-organizers. Event times are in Philippine time.
+
 ## Deploying for free
 
-Import the repo on [Vercel](https://vercel.com) (Hobby plan) and add `CRON_SECRET` (any long random string) as an environment variable. Two daily cron jobs reset the demo at midnight Manila time and send reminders for the next day's events.
+Import the repo on [Vercel](https://vercel.com) (Hobby plan) and add `CRON_SECRET` (any long random string) and `DEMO_MODE` as environment variables. Two daily cron jobs send reminders for the next day's events and, in demo mode, reset the data at midnight Manila time.
 
 **Without a database.** If `DATABASE_URL` isn't set, the API runs an in-memory Postgres (PGlite) and loads the sample data when it starts. Treat this as a quick preview only: Vercel spreads requests across several server instances, each with its own copy of the data, so sign-ins and registrations go missing at random. Add a real database before sharing the link.
 
-**With a database.** Create a free Postgres database on [Neon](https://neon.tech), copy the pooled connection string, and add it as `DATABASE_URL`. On the next deploy the build applies migrations and loads the sample data if the database is empty (see `vercel.json`). From then on, data stays put until the daily reset.
-
-To send real emails, add `RESEND_API_KEY` and `EMAIL_FROM` from a free [Resend](https://resend.com) account. Resend only delivers to domains you've verified, so the made-up sample addresses still only show up in the inbox page.
+**With a database.** Create a free Postgres database on [Neon](https://neon.tech), copy the pooled connection string, and add it as `DATABASE_URL`. On the next deploy the build applies migrations, and in demo mode loads the sample data if the database is empty (see `vercel.json`).
