@@ -1,8 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": [
+    "sin1"
+  ],
   "buildCommand": "npm run db:setup && npm run build",
   "crons": [
-    { "path": "/api/cron/reset-demo", "schedule": "0 16 * * *" },
-    { "path": "/api/cron/reminders", "schedule": "0 0 * * *" }
+    {
+      "path": "/api/cron/reset-demo",
+      "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/cron/reminders",
+      "schedule": "0 0 * * *"
+    }
   ]
 }
