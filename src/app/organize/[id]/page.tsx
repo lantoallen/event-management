@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { AttendeesTable } from "@/components/organizer/attendees-table";
 import { EventActions } from "@/components/organizer/event-actions";
 import { EventStatusBadge } from "@/components/organizer/event-status";
+import { MessagePanel } from "@/components/organizer/message-panel";
 import { SignupChart } from "@/components/organizer/signup-chart";
 import { load, serverApi } from "@/lib/server-api";
 import { formatFullDate, formatTimeRange } from "@/lib/time";
@@ -28,10 +29,11 @@ async function Dashboard({ params }: { params: PageProps<"/organize/[id]">["para
   const client = await serverApi();
   const route = client.api.organizer.events[":id"];
   const returnTo = `/organize/${id}`;
-  const [{ event }, { stats }, { attendees }] = await Promise.all([
+  const [{ event }, { stats }, { attendees }, { messages }] = await Promise.all([
     load(route.$get({ param: { id } }), { returnTo }),
     load(route.stats.$get({ param: { id } }), { returnTo }),
     load(route.attendees.$get({ param: { id } }), { returnTo }),
+    load(route.announcements.$get({ param: { id } }), { returnTo }),
   ]);
   const ended = new Date(event.endsAt) <= new Date();
 
@@ -69,6 +71,8 @@ async function Dashboard({ params }: { params: PageProps<"/organize/[id]">["para
         </div>
         <SignupChart daily={stats.daily} />
       </section>
+
+      {event.status !== "draft" && <MessagePanel eventId={event.id} messages={messages} waitlisted={stats.waitlisted} />}
 
       <section>
         <AttendeesTable eventId={event.id} attendees={attendees} />

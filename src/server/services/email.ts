@@ -45,7 +45,8 @@ export type EmailKind =
   | "cancelled"
   | "event_cancelled"
   | "event_updated"
-  | "reminder";
+  | "reminder"
+  | "announcement";
 
 type Draft = { kind: EmailKind; userId: string; eventId: string | null; to: string; subject: string; body: string };
 
@@ -135,6 +136,20 @@ export const templates = {
       to: user.email,
       subject: `Updated details for ${event.title}`,
       body: `Hi ${firstName(user.name)},\n\nThe organizer changed the time or place of ${event.title}. Here's the latest:\n\n${whenAndWhere(event)}${signOff}`,
+    };
+  },
+  announcement(
+    user: Recipient,
+    event: EventInfo,
+    message: { subject: string; body: string; from: string; url: string },
+  ): Draft {
+    return {
+      kind: "announcement",
+      userId: user.id,
+      eventId: event.id,
+      to: user.email,
+      subject: `${event.title}: ${message.subject}`,
+      body: `Hi ${firstName(user.name)},\n\n${message.from} sent a message about ${event.title}:\n\n${message.body}\n\n${whenAndWhere(event)}\nEvent page: ${message.url}\n\nYou're getting this because you registered for this event.${signOff}`,
     };
   },
   reminder(user: Recipient, event: EventInfo, ticketUrl: string): Draft {

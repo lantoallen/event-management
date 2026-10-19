@@ -142,6 +142,23 @@ export const registrations = pgTable(
   ],
 );
 
+// Messages an organizer sent to the people registered for an event.
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    includeWaitlist: boolean("include_waitlist").notNull().default(false),
+    recipientCount: integer("recipient_count").notNull(),
+    ...timestamps,
+  },
+  (t) => [index("announcements_event_created_idx").on(t.eventId, t.createdAt)],
+);
+
 export const emailStatus = pgEnum("email_status", ["logged", "sent", "failed"]);
 
 // Every email the app would send. The demo inbox reads from here, and when a
