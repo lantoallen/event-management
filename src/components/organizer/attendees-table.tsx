@@ -56,7 +56,7 @@ export function AttendeesTable({ attendees }: { eventId: string; attendees: Atte
             onClick={() => setFilter(f.key)}
             className={`shrink-0 rounded-md px-2.5 py-1 ${filter === f.key ? "bg-surface-2 text-ink" : "text-muted hover:text-ink"}`}
           >
-            {f.label} <span className="tabular-nums text-faint">{counts[f.key]}</span>
+            {f.label} <span className="tabular-nums text-muted">{counts[f.key]}</span>
           </button>
         ))}
       </div>

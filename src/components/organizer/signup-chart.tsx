@@ -72,6 +72,7 @@ export function SignupChart({ daily }: { daily: { day: string; count: number }[]
                 height={HEIGHT}
                 fill="transparent"
                 tabIndex={0}
+                role="img"
                 aria-label={`${formatWeekdayDate(asDate(d.day))}: ${d.count} sign-ups`}
                 onPointerEnter={() => setActive(i)}
                 onFocus={() => setActive(i)}
