@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { sql } from "drizzle-orm";
 import { createApp } from "../app";
 import { openPglite, openPostgres, type DbHandle } from "../db/client";
@@ -8,15 +9,26 @@ import type { Mailer, OutgoingEmail } from "../services/email";
 // which CI does so the locking is tested with real concurrent connections.
 export async function openTestDb(): Promise<DbHandle> {
   const url = process.env.TEST_DATABASE_URL;
-  if (!url) return openPglite();
+  if (!url) return openPglite(undefined, { snapshot: await testSnapshot() });
   const handle = await openPostgres(url, { migrate: true });
   await handle.db.execute(sql`truncate table emails, registrations, events, sessions, users cascade`);
   return handle;
 }
 
+// Made once by global-setup.ts. Falls back to a normal boot without it.
+async function testSnapshot() {
+  const file = process.env.PGLITE_TEST_SNAPSHOT;
+  if (!file) return undefined;
+  try {
+    return new Blob([await readFile(file)]);
+  } catch {
+    return undefined;
+  }
+}
+
 export type Harness = Awaited<ReturnType<typeof createHarness>>;
 
-export async function createHarness({ rateLimit = false } = {}) {
+export async function createHarness({ rateLimit = false, demo = true } = {}) {
   const handle = await openTestDb();
   let now = new Date("2026-11-02T02:00:00.000Z");
   const sent: OutgoingEmail[] = [];
@@ -26,7 +38,7 @@ export async function createHarness({ rateLimit = false } = {}) {
       return { id: `test-${sent.length}` };
     },
   };
-  const app = createApp({ db: handle.db, mailer, baseUrl: "http://test.local", now: () => now, rateLimit });
+  const app = createApp({ db: handle.db, mailer, baseUrl: "http://test.local", now: () => now, rateLimit, demo });
 
   async function request(method: string, path: string, { body, cookie }: { body?: unknown; cookie?: string } = {}) {
     const res = await app.request(path, {

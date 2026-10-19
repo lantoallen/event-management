@@ -7,5 +7,13 @@ export const SITE_URL =
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : `http://localhost:${process.env.PORT || 3000}`);
 
+// Demo mode: sample data, one-click sample accounts, and a daily reset that
+// wipes everything. Set DEMO_MODE=true or false to choose. When it's unset it's
+// only on for local development without a database, so a real deployment can
+// never reset itself by accident.
+export const DEMO_MODE = process.env.DEMO_MODE
+  ? process.env.DEMO_MODE === "true"
+  : !process.env.DATABASE_URL && !process.env.VERCEL;
+
 export const AUTHOR = { name: "Allen Lanto", url: "https://lantoallen.vercel.app" };
 export const REPO_URL = "https://github.com/lantoallen/event-management";

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Badge } from "@/components/badges";
+import { DEMO_MODE } from "@/lib/config";
 import { load, serverApi } from "@/lib/server-api";
 import { formatDateTime } from "@/lib/time";
 
@@ -11,8 +12,8 @@ export default function InboxPage() {
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Inbox</h1>
       <p className="mt-1 max-w-2xl text-sm text-muted">
-        Emails the app sends you: confirmations, waitlist updates, reminders. Since this is a demo, they land here
-        instead of a real inbox.
+        A copy of every email we&apos;ve sent you: confirmations, waitlist updates, reminders, and messages from
+        organizers.{DEMO_MODE && " On this demo they only land here, not in a real inbox."}
       </p>
       <Suspense fallback={<div className="card mt-6 h-48 animate-pulse" />}>
         <Emails />

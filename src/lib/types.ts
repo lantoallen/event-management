@@ -11,3 +11,4 @@ export type EventStats = InferResponseType<OneEvent["stats"]["$get"], 200>["stat
 export type Attendee = InferResponseType<OneEvent["attendees"]["$get"], 200>["attendees"][number];
 export type RecentCheckIn = InferResponseType<OneEvent["check-ins"]["$get"], 200>["recent"][number];
 export type CheckInResult = InferResponseType<OneEvent["check-ins"]["$post"], 200>;
+export type SentMessage = InferResponseType<OneEvent["announcements"]["$get"], 200>["messages"][number];

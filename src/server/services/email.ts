@@ -1,5 +1,5 @@
 import { and, eq, inArray, desc } from "drizzle-orm";
-import { APP_NAME } from "@/lib/config";
+import { APP_NAME, DEMO_MODE } from "@/lib/config";
 import { formatFullDate, formatTimeRange } from "@/lib/time";
 import type { Db } from "../db/client";
 import { emails, type Event } from "../db/schema";
@@ -38,15 +38,17 @@ type Recipient = { id: string; name: string; email: string };
 type EventInfo = Pick<Event, "id" | "title" | "startsAt" | "endsAt" | "isOnline" | "location" | "city">;
 
 export type EmailKind =
+  | "password_reset"
   | "confirmed"
   | "waitlisted"
   | "promoted"
   | "cancelled"
   | "event_cancelled"
   | "event_updated"
-  | "reminder";
+  | "reminder"
+  | "announcement";
 
-type Draft = { kind: EmailKind; userId: string; eventId: string; to: string; subject: string; body: string };
+type Draft = { kind: EmailKind; userId: string; eventId: string | null; to: string; subject: string; body: string };
 
 const firstName = (name: string) => name.split(" ")[0];
 
@@ -55,9 +57,21 @@ function whenAndWhere(event: EventInfo) {
   return `${formatFullDate(event.startsAt)}, ${formatTimeRange(event.startsAt, event.endsAt)}\n${place}`;
 }
 
-const signOff = `\n\n${APP_NAME}\nThis is a demo app, so this message was only saved to your inbox page.`;
+const signOff = DEMO_MODE
+  ? `\n\n${APP_NAME}\nThis is a demo app, so this message was only saved to your inbox page.`
+  : `\n\n${APP_NAME}`;
 
 export const templates = {
+  passwordReset(user: Recipient, resetUrl: string): Draft {
+    return {
+      kind: "password_reset",
+      userId: user.id,
+      eventId: null,
+      to: user.email,
+      subject: "Reset your password",
+      body: `Hi ${firstName(user.name)},\n\nSomeone asked to reset the password for your ${APP_NAME} account. If it was you, set a new one here (the link works for an hour):\n\n${resetUrl}\n\nIf it wasn't you, you can ignore this email and your password stays the same.${signOff}`,
+    };
+  },
   confirmed(user: Recipient, event: EventInfo, ticketUrl: string): Draft {
     return {
       kind: "confirmed",
@@ -122,6 +136,20 @@ export const templates = {
       to: user.email,
       subject: `Updated details for ${event.title}`,
       body: `Hi ${firstName(user.name)},\n\nThe organizer changed the time or place of ${event.title}. Here's the latest:\n\n${whenAndWhere(event)}${signOff}`,
+    };
+  },
+  announcement(
+    user: Recipient,
+    event: EventInfo,
+    message: { subject: string; body: string; from: string; url: string },
+  ): Draft {
+    return {
+      kind: "announcement",
+      userId: user.id,
+      eventId: event.id,
+      to: user.email,
+      subject: `${event.title}: ${message.subject}`,
+      body: `Hi ${firstName(user.name)},\n\n${message.from} sent a message about ${event.title}:\n\n${message.body}\n\n${whenAndWhere(event)}\nEvent page: ${message.url}\n\nYou're getting this because you registered for this event.${signOff}`,
     };
   },
   reminder(user: Recipient, event: EventInfo, ticketUrl: string): Draft {

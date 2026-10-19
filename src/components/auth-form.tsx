@@ -10,7 +10,7 @@ function safeNext(value: string | null) {
   return value && value.startsWith("/") && !value.startsWith("//") ? value : null;
 }
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({ mode, demo }: { mode: "login" | "signup"; demo: boolean }) {
   const router = useRouter();
   const next = safeNext(useSearchParams().get("next"));
   const [pending, start] = useTransition();
@@ -39,7 +39,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     });
   }
 
-  function demo(as: "attendee" | "organizer") {
+  function signInAsSample(as: "attendee" | "organizer") {
     setError(null);
     start(async () => {
       try {
@@ -85,6 +85,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             className="input"
           />
           {mode === "signup" && <p className="mt-1 text-[13px] text-muted">At least 8 characters.</p>}
+          {mode === "login" && (
+            <Link href="/forgot-password" className="mt-1 inline-block text-[13px] text-muted hover:text-ink">
+              Forgot your password?
+            </Link>
+          )}
         </div>
         {error && (
           <p role="alert" className="text-sm text-bad">
@@ -102,6 +107,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </Link>
       </p>
 
+      {demo && (
       <div className="card mt-8 p-4">
         <p className="text-sm font-medium">Just looking around?</p>
         <p className="mt-1 text-[13px] text-muted">
@@ -109,14 +115,15 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           events you can check people in to.
         </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-          <button type="button" className="btn-secondary flex-1" disabled={pending} onClick={() => demo("attendee")}>
+          <button type="button" className="btn-secondary flex-1" disabled={pending} onClick={() => signInAsSample("attendee")}>
             Try as Sam (attendee)
           </button>
-          <button type="button" className="btn-secondary flex-1" disabled={pending} onClick={() => demo("organizer")}>
+          <button type="button" className="btn-secondary flex-1" disabled={pending} onClick={() => signInAsSample("organizer")}>
             Try as an organizer
           </button>
         </div>
       </div>
+      )}
     </>
   );
 }

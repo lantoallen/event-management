@@ -42,6 +42,22 @@ export const sessions = pgTable(
   (t) => [index("sessions_user_idx").on(t.userId)],
 );
 
+// One-time links for resetting a forgotten password. Like sessions, only a
+// hash of the token is stored.
+export const passwordResets = pgTable(
+  "password_resets",
+  {
+    id: text("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index("password_resets_user_idx").on(t.userId)],
+);
+
 export const eventCategory = pgEnum("event_category", [
   "tech",
   "music",
@@ -54,6 +70,9 @@ export const eventCategory = pgEnum("event_category", [
 ]);
 
 export const eventStatus = pgEnum("event_status", ["draft", "published", "cancelled"]);
+
+// Unlisted events work for anyone with the link but stay out of browse and search.
+export const eventVisibility = pgEnum("event_visibility", ["public", "unlisted"]);
 
 export const events = pgTable(
   "events",
@@ -68,6 +87,7 @@ export const events = pgTable(
     description: text("description").notNull(),
     category: eventCategory("category").notNull(),
     status: eventStatus("status").notNull().default("draft"),
+    visibility: eventVisibility("visibility").notNull().default("public"),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     isOnline: boolean("is_online").notNull().default(false),
@@ -124,6 +144,23 @@ export const registrations = pgTable(
     index("registrations_event_status_idx").on(t.eventId, t.status, t.queueNo),
     index("registrations_user_idx").on(t.userId),
   ],
+);
+
+// Messages an organizer sent to the people registered for an event.
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    includeWaitlist: boolean("include_waitlist").notNull().default(false),
+    recipientCount: integer("recipient_count").notNull(),
+    ...timestamps,
+  },
+  (t) => [index("announcements_event_created_idx").on(t.eventId, t.createdAt)],
 );
 
 export const emailStatus = pgEnum("email_status", ["logged", "sent", "failed"]);

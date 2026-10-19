@@ -4,7 +4,7 @@
 // Uses DATABASE_URL when it's set, otherwise the local PGlite folder. On Vercel
 // without DATABASE_URL it saves a snapshot for the in-memory demo database.
 // Stop `npm run dev` first when using PGlite, since only one process can open it.
-import { SITE_URL } from "@/lib/config";
+import { DEMO_MODE, SITE_URL } from "@/lib/config";
 import { isDemoMemoryMode, openFromEnv, saveDemoSnapshot } from "@/server/db/client";
 import { isEmpty, resetDatabase, seed } from "@/server/seed";
 
@@ -19,7 +19,10 @@ async function main() {
   const handle = await openFromEnv({ migrate: true });
   console.log(`Connected to ${handle.kind === "postgres" ? "Postgres" : "local PGlite"}, migrations applied.`);
 
-  if (command === "reset") {
+  if (!DEMO_MODE) {
+    // A real deployment only gets its tables; sample data never goes in.
+    if (command === "reset") console.log("Refusing to reset: DEMO_MODE isn't on, so this could be real data.");
+  } else if (command === "reset") {
     await resetDatabase(handle.db);
     console.log("Seeded:", await seed(handle.db, new Date(), SITE_URL));
   } else if (await isEmpty(handle.db)) {

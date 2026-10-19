@@ -13,6 +13,7 @@ import {
   publishEvent,
   updateEvent,
 } from "../services/events";
+import { listAnnouncements, sendAnnouncement } from "../services/announcements";
 import { attendeesCsv, checkIn, eventStats, listAttendees, recentCheckIns, undoCheckIn } from "../services/organizer";
 
 const date = (label: string) =>
@@ -34,6 +35,7 @@ const eventBody = z.object({
   startsAt: date("start time"),
   endsAt: date("end time"),
   isOnline: z.boolean(),
+  visibility: z.enum(["public", "unlisted"]).default("public"),
   location: z.string().trim().min(2, "Add a location or meeting link.").max(300),
   city: z.string().trim().max(80).default(""),
   capacity: z
@@ -133,6 +135,38 @@ export const organizerRoutes = new Hono<Env>()
       "Content-Disposition": `attachment; filename="${event.slug}-attendees.csv"`,
     });
   })
+
+  .get("/events/:id/announcements", validate("param", idParam), async (c) => {
+    const user = requireUser(c);
+    const messages = await listAnnouncements(c.get("deps").db, c.req.valid("param").id, user.id);
+    return c.json({ messages }, 200);
+  })
+
+  .post(
+    "/events/:id/announcements",
+    validate("param", idParam),
+    validate(
+      "json",
+      z.object({
+        subject: z.string().trim().min(3, "Add a short subject.").max(120, "Keep the subject under 120 characters."),
+        body: z.string().trim().min(10, "Write a message of at least 10 characters.").max(5000, "Keep the message under 5,000 characters."),
+        includeWaitlist: z.boolean().default(false),
+      }),
+    ),
+    async (c) => {
+      const user = requireUser(c);
+      const { db, mailer, baseUrl } = c.get("deps");
+      const { announcement, emailIds } = await sendAnnouncement(db, {
+        eventId: c.req.valid("param").id,
+        organizer: user,
+        ...c.req.valid("json"),
+        now: c.get("now"),
+        eventUrl: (slug) => `${baseUrl}/events/${slug}`,
+      });
+      await deliverEmails(db, mailer, emailIds);
+      return c.json({ message: announcement }, 201);
+    },
+  )
 
   .get("/events/:id/check-ins", validate("param", idParam), async (c) => {
     const user = requireUser(c);

@@ -18,6 +18,8 @@ export type Deps = {
   production?: boolean;
   // Tests sign up lots of people from one address.
   rateLimit?: boolean;
+  // Sample accounts and the daily reset. Off for real use.
+  demo?: boolean;
 };
 
 export type Env = {

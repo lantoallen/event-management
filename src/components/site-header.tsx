@@ -49,7 +49,10 @@ async function Account() {
   }
   return (
     <>
-      <span className="hidden max-w-40 truncate text-muted md:inline">{user.name}</span>
+      <Link href="/account" className="max-w-40 truncate text-muted hover:text-ink">
+        <span className="hidden md:inline">{user.name}</span>
+        <span className="md:hidden">Account</span>
+      </Link>
       <LogoutButton />
     </>
   );

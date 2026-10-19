@@ -165,6 +165,26 @@ describe("registration rules", () => {
     expect(list.json.events).toHaveLength(0);
   });
 
+  it("keeps unlisted events out of browse and search, but open to anyone with the link", async () => {
+    const org = await h.user();
+    const event = await h.event(org, { title: "Private alumni dinner", visibility: "unlisted" });
+    const list = await h.request("GET", "/api/events?q=alumni");
+    expect(list.json.events).toHaveLength(0);
+
+    const guest = await h.user();
+    const page = await guest.as("GET", `/api/events/${event.slug}`);
+    expect(page.status).toBe(200);
+    expect(page.json.event.visibility).toBe("unlisted");
+    expect((await guest.as("POST", `/api/events/${event.id}/registrations`)).status).toBe(201);
+
+    // Copies keep the setting, and it can be switched back to public.
+    const copy = (await org.as("POST", `/api/organizer/events/${event.id}/duplicate`)).json.event;
+    expect(copy.visibility).toBe("unlisted");
+    const current = (await org.as("GET", `/api/organizer/events/${event.id}`)).json.event;
+    await org.as("PATCH", `/api/organizer/events/${event.id}`, { ...current, visibility: "public" });
+    expect((await h.request("GET", "/api/events?q=alumni")).json.events).toHaveLength(1);
+  });
+
   it("keeps online meeting links private until you have a confirmed spot", async () => {
     const org = await h.user();
     const event = await h.event(org, {
