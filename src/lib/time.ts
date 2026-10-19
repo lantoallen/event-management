@@ -16,6 +16,7 @@ const fullDate = fmt({ weekday: "long", month: "long", day: "numeric", year: "nu
 const shortDate = fmt({ month: "short", day: "numeric" });
 const time = fmt({ hour: "numeric", minute: "2-digit" });
 const monthShort = fmt({ month: "short" });
+const monthLong = fmt({ month: "long" });
 const dayOfMonth = fmt({ day: "numeric" });
 
 export const formatWeekdayDate = (d: DateInput) => weekdayDate.format(toDate(d));
@@ -23,6 +24,7 @@ export const formatFullDate = (d: DateInput) => fullDate.format(toDate(d));
 export const formatShortDate = (d: DateInput) => shortDate.format(toDate(d));
 export const formatTime = (d: DateInput) => time.format(toDate(d)).replace(/\s/g, " ");
 export const formatMonth = (d: DateInput) => monthShort.format(toDate(d)).toUpperCase();
+export const formatMonthName = (d: DateInput) => monthLong.format(toDate(d));
 export const formatDay = (d: DateInput) => dayOfMonth.format(toDate(d));
 export const formatDateTime = (d: DateInput) => `${formatShortDate(d)}, ${formatTime(d)}`;
 

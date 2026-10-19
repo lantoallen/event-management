@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { EventCard, EventCardSkeleton } from "@/components/event-card";
 import { CATEGORY_LABELS } from "@/lib/categories";
 import { load, serverApi } from "@/lib/server-api";
+import { formatMonthName, manilaDayKey, manilaStartOfDay } from "@/lib/time";
 import { categories, type EventCategory } from "@/server/db/schema";
 
 type Search = { q?: string; category?: string; when?: string; page?: string };
@@ -49,7 +50,8 @@ async function Filters({ searchParams }: { searchParams: PageProps<"/">["searchP
   const search = await readSearch(searchParams);
   return (
     <div className="mt-6 space-y-3">
-      <form action="/" className="flex flex-col gap-2 sm:flex-row">
+      {/* Phones: search box and button on one row, the date filter under them. Wider: one row. */}
+      <form action="/" className="grid grid-cols-[1fr_auto] gap-2 sm:flex">
         {search.category && <input type="hidden" name="category" value={search.category} />}
         <label className="sr-only" htmlFor="q">
           Search
@@ -65,7 +67,12 @@ async function Filters({ searchParams }: { searchParams: PageProps<"/">["searchP
         <label className="sr-only" htmlFor="when">
           When
         </label>
-        <select id="when" name="when" defaultValue={search.when ?? "all"} className="input sm:w-44">
+        <select
+          id="when"
+          name="when"
+          defaultValue={search.when ?? "all"}
+          className="input col-span-2 row-start-2 sm:w-44"
+        >
           {WHEN.map(([value, label]) => (
             <option key={value} value={value}>
               {label}
@@ -74,7 +81,8 @@ async function Filters({ searchParams }: { searchParams: PageProps<"/">["searchP
         </select>
         <button className="btn-secondary">Search</button>
       </form>
-      <div className="flex flex-wrap gap-x-5 gap-y-1 border-b border-line text-sm">
+      {/* One line that scrolls sideways on narrow screens instead of wrapping. */}
+      <div className="-mx-4 flex gap-x-5 overflow-x-auto border-b border-line px-4 text-sm whitespace-nowrap [scrollbar-width:none] sm:mx-0 sm:px-0">
         <CategoryLink href={hrefWith(search, { category: undefined })} active={!search.category}>
           All
         </CategoryLink>
@@ -132,11 +140,16 @@ async function Results({ searchParams }: { searchParams: PageProps<"/">["searchP
 
   return (
     <>
-      <div className="mt-6 grid gap-3 md:grid-cols-2">
-        {events.map((event) => (
-          <EventCard key={event.slug} event={event} />
-        ))}
-      </div>
+      {groupByWhen(events, new Date()).map((group) => (
+        <section key={group.label} className="mt-8 first:mt-6">
+          <h2 className="mb-3 text-sm font-medium text-muted">{group.label}</h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {group.events.map((event) => (
+              <EventCard key={event.slug} event={event} />
+            ))}
+          </div>
+        </section>
+      ))}
       {(page > 1 || hasMore) && (
         <div className="mt-6 flex justify-between text-sm">
           {page > 1 ? (
@@ -165,4 +178,22 @@ function ResultsSkeleton() {
       ))}
     </div>
   );
+}
+
+// "Next 7 days", then one group per month, so a long list has landmarks.
+function groupByWhen<T extends { startsAt: string }>(events: T[], now: Date) {
+  const weekEnd = manilaStartOfDay(now, 7);
+  const thisMonth = manilaDayKey(now).slice(0, 7);
+  const groups: { label: string; events: T[] }[] = [];
+  for (const event of events) {
+    const start = new Date(event.startsAt);
+    let label: string;
+    if (start < weekEnd) label = "Next 7 days";
+    else if (manilaDayKey(start).slice(0, 7) === thisMonth) label = `Later in ${formatMonthName(start)}`;
+    else label = formatMonthName(start);
+    const last = groups.at(-1);
+    if (last?.label === label) last.events.push(event);
+    else groups.push({ label, events: [event] });
+  }
+  return groups;
 }
