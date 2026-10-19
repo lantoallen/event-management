@@ -6,6 +6,7 @@ import { CapacityMeter } from "@/components/capacity-meter";
 import { RegisterPanel } from "@/components/register-panel";
 import { ShareButton } from "@/components/share-button";
 import { CATEGORY_LABELS } from "@/lib/categories";
+import { mapsUrl } from "@/lib/maps";
 import { currentUser, load, serverApi } from "@/lib/server-api";
 import { formatFullDate, formatTimeRange } from "@/lib/time";
 
@@ -77,6 +78,10 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
                 {event.location}
                 <br />
                 <span className="text-muted">{event.city}</span>
+                <br />
+                <a href={mapsUrl(event.location!, event.city)} className="link text-[13px]" target="_blank" rel="noreferrer">
+                  Open in Google Maps
+                </a>
               </p>
             )}
           </div>
