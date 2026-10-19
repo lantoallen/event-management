@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, desc, eq, gt, gte, ilike, lt, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, ilike, lt, ne, or, sql, type SQL } from "drizzle-orm";
 import { manilaStartOfDay, manilaWeekday } from "@/lib/time";
 import type { Db } from "../db/client";
 import { events, registrations, users, type Event, type EventCategory } from "../db/schema";
@@ -162,7 +162,7 @@ function toCard({ event, organizerName, confirmed, waitlisted }: CardRow) {
   };
 }
 
-export async function getEventPage(db: Db, slug: string, viewerId: string | null) {
+export async function getEventPage(db: Db, slug: string, viewerId: string | null, now: Date) {
   const counts = countsFor(db);
   const [row] = await db
     .select({ event: events, organizerName: users.name, ...countColumns(counts) })
@@ -190,6 +190,25 @@ export async function getEventPage(db: Db, slug: string, viewerId: string | null
     }
   }
 
+  // A few other upcoming public events by the same host.
+  const moreCounts = countsFor(db);
+  const more = await db
+    .select({ event: events, organizerName: users.name, ...countColumns(moreCounts) })
+    .from(events)
+    .innerJoin(users, eq(users.id, events.organizerId))
+    .leftJoin(moreCounts, eq(moreCounts.eventId, events.id))
+    .where(
+      and(
+        eq(events.organizerId, row.event.organizerId),
+        ne(events.id, row.event.id),
+        eq(events.status, "published"),
+        eq(events.visibility, "public"),
+        gt(events.endsAt, now),
+      ),
+    )
+    .orderBy(asc(events.startsAt))
+    .limit(3);
+
   const { event } = row;
   return {
     ...toCard(row),
@@ -197,6 +216,7 @@ export async function getEventPage(db: Db, slug: string, viewerId: string | null
     location: publicLocation(event, isOrganizer || registration?.status === "confirmed"),
     isOrganizer,
     registration,
+    moreFromHost: more.map(toCard),
   };
 }
 

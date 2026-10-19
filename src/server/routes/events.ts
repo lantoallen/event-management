@@ -22,7 +22,7 @@ export const eventRoutes = new Hono<Env>()
   })
 
   .get("/:slug", async (c) => {
-    const event = await getEventPage(c.get("deps").db, c.req.param("slug"), c.get("user")?.id ?? null);
+    const event = await getEventPage(c.get("deps").db, c.req.param("slug"), c.get("user")?.id ?? null, c.get("now"));
     return c.json({ event }, 200);
   })
 

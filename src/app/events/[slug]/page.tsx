@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Badge } from "@/components/badges";
 import { CapacityMeter } from "@/components/capacity-meter";
+import { EventCard } from "@/components/event-card";
 import { RegisterPanel } from "@/components/register-panel";
 import { ShareButton } from "@/components/share-button";
 import { CATEGORY_LABELS } from "@/lib/categories";
@@ -44,7 +45,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
   return (
     // On phones: title, then when/where/register, then the description. On wider
     // screens the panel moves to a sticky right column next to both.
-    <div className="mt-4 grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-[1fr_320px] md:grid-rows-[auto_1fr]">
+    <div className="mt-4 grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-[1fr_320px] md:grid-rows-[auto_auto_1fr]">
       <header className="md:col-start-1">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
           <span>{CATEGORY_LABELS[event.category]}</span>
@@ -61,7 +62,18 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
         <div className="mt-4 space-y-4 leading-relaxed whitespace-pre-line text-ink/90">{event.description}</div>
       </article>
 
-      <aside className="row-start-2 md:col-start-2 md:row-span-2 md:row-start-1 md:sticky md:top-6 md:self-start">
+      {event.moreFromHost.length > 0 && (
+        <section className="mt-2 md:col-start-1 md:self-start">
+          <h2 className="mb-3 text-sm font-medium text-muted">More from {event.organizerName}</h2>
+          <div className="space-y-3">
+            {event.moreFromHost.map((e) => (
+              <EventCard key={e.slug} event={e} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <aside className="row-start-2 md:col-start-2 md:row-span-3 md:row-start-1 md:sticky md:top-6 md:self-start">
         <div className="card space-y-4 p-5">
           <div>
             <p className="font-medium">{formatFullDate(event.startsAt)}</p>

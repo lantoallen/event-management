@@ -165,6 +165,17 @@ describe("registration rules", () => {
     expect(list.json.events).toHaveLength(0);
   });
 
+  it("lists the host's other upcoming public events on an event page", async () => {
+    const org = await h.user();
+    const main = await h.event(org, { title: "Main event" });
+    await h.event(org, { title: "Next one" });
+    await h.event(org, { title: "Hidden one", visibility: "unlisted" });
+    await h.event(org, { title: "Draft one", publish: false });
+    await h.event(await h.user(), { title: "Someone else's" });
+    const page = await h.request("GET", `/api/events/${main.slug}`);
+    expect(page.json.event.moreFromHost.map((e: { title: string }) => e.title)).toEqual(["Next one"]);
+  });
+
   it("keeps unlisted events out of browse and search, but open to anyone with the link", async () => {
     const org = await h.user();
     const event = await h.event(org, { title: "Private alumni dinner", visibility: "unlisted" });
