@@ -35,7 +35,6 @@ export default function BrowsePage({ searchParams }: PageProps<"/">) {
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Upcoming events</h1>
-      <p className="mt-1 text-muted">Workshops, runs, food walks, and meetups around Batangas and online.</p>
       <Suspense fallback={<div className="mt-6 h-[92px]" />}>
         <Filters searchParams={searchParams} />
       </Suspense>
@@ -75,7 +74,7 @@ async function Filters({ searchParams }: { searchParams: PageProps<"/">["searchP
         </select>
         <button className="btn-secondary">Search</button>
       </form>
-      <div className="flex flex-wrap gap-1.5 text-[13px]">
+      <div className="flex flex-wrap gap-x-5 gap-y-1 border-b border-line text-sm">
         <CategoryLink href={hrefWith(search, { category: undefined })} active={!search.category}>
           All
         </CategoryLink>
@@ -94,9 +93,7 @@ function CategoryLink({ href, active, children }: { href: string; active: boolea
     <Link
       href={href}
       aria-current={active ? "true" : undefined}
-      className={`rounded-md border px-2.5 py-1 ${
-        active ? "border-ink bg-ink text-bg" : "border-line-strong text-muted hover:text-ink"
-      }`}
+      className={`-mb-px border-b-2 py-2 ${active ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink"}`}
     >
       {children}
     </Link>
