@@ -42,8 +42,10 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
   const started = new Date(event.startsAt) <= new Date();
 
   return (
-    <div className="mt-4 grid gap-8 md:grid-cols-[1fr_320px]">
-      <article>
+    // On phones: title, then when/where/register, then the description. On wider
+    // screens the panel moves to a sticky right column next to both.
+    <div className="mt-4 grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-[1fr_320px] md:grid-rows-[auto_1fr]">
+      <header className="md:col-start-1">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
           <span>{CATEGORY_LABELS[event.category]}</span>
           {event.status === "draft" && <Badge tone="muted">Draft, only you can see this</Badge>}
@@ -52,11 +54,14 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
         </div>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight text-balance">{event.title}</h1>
         <p className="mt-2 text-muted">Hosted by {event.organizerName}</p>
-        <p className="mt-6 text-lg leading-relaxed">{event.summary}</p>
+      </header>
+
+      <article className="md:col-start-1 md:row-start-2">
+        <p className="text-lg leading-relaxed">{event.summary}</p>
         <div className="mt-4 space-y-4 leading-relaxed whitespace-pre-line text-ink/90">{event.description}</div>
       </article>
 
-      <aside className="md:sticky md:top-6 md:self-start">
+      <aside className="row-start-2 md:col-start-2 md:row-span-2 md:row-start-1 md:sticky md:top-6 md:self-start">
         <div className="card space-y-4 p-5">
           <div>
             <p className="font-medium">{formatFullDate(event.startsAt)}</p>
