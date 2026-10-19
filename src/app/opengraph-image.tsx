@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
 import QRCode from "qrcode";
-import { APP_NAME, SITE_URL } from "@/lib/config";
+import { APP_NAME, DEMO_MODE, SITE_URL } from "@/lib/config";
 
 export const alt = `${APP_NAME}: register for events and get a QR ticket`;
 export const size = { width: 1200, height: 630 };
@@ -26,7 +26,7 @@ export default async function Image() {
             <div style={{ fontSize: 60, fontWeight: 700, lineHeight: 1.1, maxWidth: 640 }}>
               Event registration with QR tickets and door check-in
             </div>
-            <div style={{ fontSize: 28, color: "#6a655d", maxWidth: 640 }}>A demo project by Allen Lanto</div>
+            {DEMO_MODE && <div style={{ fontSize: 28, color: "#6a655d", maxWidth: 640 }}>A demo project by Allen Lanto</div>}
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", width: 340, alignSelf: "center", ...ticket }}>

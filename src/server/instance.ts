@@ -1,4 +1,4 @@
-import { SITE_URL } from "@/lib/config";
+import { DEMO_MODE, SITE_URL } from "@/lib/config";
 import { createApp, type App } from "./app";
 import { openFromEnv, type DbHandle } from "./db/client";
 import { mailerFromEnv } from "./services/email";
@@ -11,8 +11,8 @@ const store = globalThis as unknown as { __eventsDb?: Promise<DbHandle> };
 function getDb() {
   store.__eventsDb ??= (async () => {
     const handle = await openFromEnv();
-    // A fresh local or in-memory database: load the sample data so the app isn't empty.
-    if (handle.kind === "pglite" && (await isEmpty(handle.db))) await seed(handle.db, new Date(), SITE_URL);
+    // A fresh local or in-memory demo database: load the sample data so it isn't empty.
+    if (DEMO_MODE && handle.kind === "pglite" && (await isEmpty(handle.db))) await seed(handle.db, new Date(), SITE_URL);
     return handle;
   })().catch((err) => {
     store.__eventsDb = undefined;
@@ -31,6 +31,7 @@ export function getApp() {
       baseUrl: SITE_URL,
       cronSecret: process.env.CRON_SECRET,
       production: process.env.NODE_ENV === "production",
+      demo: DEMO_MODE,
     }),
   );
   return app;

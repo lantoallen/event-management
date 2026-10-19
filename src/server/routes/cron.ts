@@ -1,5 +1,5 @@
 import { Hono, type Context } from "hono";
-import { unauthorized } from "../errors";
+import { notFound, unauthorized } from "../errors";
 import { ticketUrl, type Env } from "../http";
 import { deliverEmails } from "../services/email";
 import { queueReminders } from "../services/reminders";
@@ -24,7 +24,9 @@ export const cronRoutes = new Hono<Env>()
   // Wipes everything and loads the sample data again, once a day.
   .get("/reset-demo", async (c) => {
     checkCronSecret(c);
-    const { db, baseUrl } = c.get("deps");
+    const { db, baseUrl, demo } = c.get("deps");
+    // Never wipe a real deployment, whatever calls this.
+    if (!demo) throw notFound("Not in demo mode.");
     await resetDatabase(db);
     return c.json({ seeded: await seed(db, c.get("now"), baseUrl) }, 200);
   });

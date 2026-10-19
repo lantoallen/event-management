@@ -43,7 +43,8 @@ export const authRoutes = new Hono<Env>()
 
   // One-click sign in as one of the seeded demo accounts.
   .post("/demo", validate("json", z.object({ as: z.enum(["organizer", "attendee"]) })), async (c) => {
-    const { db } = c.get("deps");
+    const { db, demo } = c.get("deps");
+    if (!demo) throw notFound("Sample accounts are only available in demo mode.");
     const [user] = await db
       .select({ id: users.id, name: users.name, email: users.email })
       .from(users)

@@ -76,3 +76,17 @@ describe("sample data", () => {
     expect((await h.db.query.users.findMany()).some((u) => u.name === "Visitor")).toBe(false);
   });
 });
+
+describe("outside demo mode", () => {
+  it("refuses sample sign-in and never resets the database", async () => {
+    const real = await createHarness({ demo: false });
+    await seed(real.db, real.now, "http://test.local");
+    const person = await real.user("Real Person");
+
+    expect((await real.request("POST", "/api/auth/demo", { body: { as: "attendee" } })).status).toBe(404);
+    expect((await real.request("GET", "/api/cron/reset-demo")).status).toBe(404);
+    const users = await real.db.query.users.findMany();
+    expect(users.some((u) => u.id === person.id)).toBe(true);
+    await real.close();
+  });
+});

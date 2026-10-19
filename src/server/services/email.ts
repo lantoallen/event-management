@@ -1,5 +1,5 @@
 import { and, eq, inArray, desc } from "drizzle-orm";
-import { APP_NAME } from "@/lib/config";
+import { APP_NAME, DEMO_MODE } from "@/lib/config";
 import { formatFullDate, formatTimeRange } from "@/lib/time";
 import type { Db } from "../db/client";
 import { emails, type Event } from "../db/schema";
@@ -55,7 +55,9 @@ function whenAndWhere(event: EventInfo) {
   return `${formatFullDate(event.startsAt)}, ${formatTimeRange(event.startsAt, event.endsAt)}\n${place}`;
 }
 
-const signOff = `\n\n${APP_NAME}\nThis is a demo app, so this message was only saved to your inbox page.`;
+const signOff = DEMO_MODE
+  ? `\n\n${APP_NAME}\nThis is a demo app, so this message was only saved to your inbox page.`
+  : `\n\n${APP_NAME}`;
 
 export const templates = {
   confirmed(user: Recipient, event: EventInfo, ticketUrl: string): Draft {

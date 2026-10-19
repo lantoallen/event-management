@@ -16,7 +16,7 @@ export async function openTestDb(): Promise<DbHandle> {
 
 export type Harness = Awaited<ReturnType<typeof createHarness>>;
 
-export async function createHarness({ rateLimit = false } = {}) {
+export async function createHarness({ rateLimit = false, demo = true } = {}) {
   const handle = await openTestDb();
   let now = new Date("2026-11-02T02:00:00.000Z");
   const sent: OutgoingEmail[] = [];
@@ -26,7 +26,7 @@ export async function createHarness({ rateLimit = false } = {}) {
       return { id: `test-${sent.length}` };
     },
   };
-  const app = createApp({ db: handle.db, mailer, baseUrl: "http://test.local", now: () => now, rateLimit });
+  const app = createApp({ db: handle.db, mailer, baseUrl: "http://test.local", now: () => now, rateLimit, demo });
 
   async function request(method: string, path: string, { body, cookie }: { body?: unknown; cookie?: string } = {}) {
     const res = await app.request(path, {
