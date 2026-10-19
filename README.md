@@ -4,6 +4,14 @@ An event registration app. People browse events, register, and get a QR ticket. 
 
 It's a portfolio project, so the people and events are made up and the data resets every day. You can sign in as a sample attendee or organizer from the login page without making an account.
 
+**Live demo:** https://event-management-two-alpha.vercel.app
+
+![Browsing upcoming events](docs/browse.jpg)
+
+| A ticket with its QR code | The organizer dashboard |
+| --- | --- |
+| ![Ticket page with a QR code and calendar buttons](docs/ticket.jpg) | ![Dashboard with counts, a sign-ups chart, and the attendee list](docs/dashboard.jpg) |
+
 ## What it does
 
 **For attendees**
