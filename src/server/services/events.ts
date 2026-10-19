@@ -271,6 +271,15 @@ export async function updateEvent(
   return db.transaction(async (tx) => {
     const before = await getOwnedEvent(tx, eventId, organizerId, { lock: true });
     if (before.status === "cancelled") throw conflict("event_cancelled", "Cancelled events can't be edited.");
+    if (before.endsAt <= now) throw conflict("event_ended", "This event already happened, so it can't be edited.");
+    // Moving a live event into the past would close registration for everyone.
+    if (
+      before.status === "published" &&
+      values.startsAt.getTime() !== before.startsAt.getTime() &&
+      values.startsAt <= now
+    ) {
+      throw badRequest("Pick a start time in the future.");
+    }
 
     const [{ confirmed }] = await tx
       .select({ confirmed: sql<number>`count(*)`.mapWith(Number) })
