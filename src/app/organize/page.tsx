@@ -64,6 +64,7 @@ async function EventList() {
               </td>
               <td className="px-4 py-3">
                 <EventStatusBadge status={e.status} endsAt={e.endsAt} />
+                {e.visibility === "unlisted" && <span className="text-[13px] text-muted"> (unlisted)</span>}
               </td>
               <td className="px-4 py-3 text-right tabular-nums">
                 {e.confirmed}

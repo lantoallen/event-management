@@ -71,6 +71,9 @@ export const eventCategory = pgEnum("event_category", [
 
 export const eventStatus = pgEnum("event_status", ["draft", "published", "cancelled"]);
 
+// Unlisted events work for anyone with the link but stay out of browse and search.
+export const eventVisibility = pgEnum("event_visibility", ["public", "unlisted"]);
+
 export const events = pgTable(
   "events",
   {
@@ -84,6 +87,7 @@ export const events = pgTable(
     description: text("description").notNull(),
     category: eventCategory("category").notNull(),
     status: eventStatus("status").notNull().default("draft"),
+    visibility: eventVisibility("visibility").notNull().default("public"),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     isOnline: boolean("is_online").notNull().default(false),

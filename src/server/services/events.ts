@@ -18,6 +18,7 @@ export type EventInput = {
   location: string;
   city: string;
   capacity: number;
+  visibility: "public" | "unlisted";
 };
 
 export const PAGE_SIZE = 12;
@@ -95,7 +96,11 @@ export async function listPublicEvents(
   now: Date,
 ) {
   const counts = countsFor(db);
-  const conditions: (SQL | undefined)[] = [eq(events.status, "published"), gt(events.endsAt, now)];
+  const conditions: (SQL | undefined)[] = [
+    eq(events.status, "published"),
+    eq(events.visibility, "public"),
+    gt(events.endsAt, now),
+  ];
   if (filters.category) conditions.push(eq(events.category, filters.category));
   const q = filters.q?.trim();
   if (q) {
@@ -144,6 +149,7 @@ function toCard({ event, organizerName, confirmed, waitlisted }: CardRow) {
     summary: event.summary,
     category: event.category,
     status: event.status,
+    visibility: event.visibility,
     startsAt: event.startsAt,
     endsAt: event.endsAt,
     isOnline: event.isOnline,
@@ -334,6 +340,7 @@ export async function duplicateEvent(db: Db, eventId: string, organizerId: strin
       startsAt: new Date(source.startsAt.getTime() + shift),
       endsAt: new Date(source.endsAt.getTime() + shift),
       isOnline: source.isOnline,
+      visibility: source.visibility,
       location: source.location,
       city: source.city,
       capacity: source.capacity,
@@ -363,6 +370,7 @@ export async function listOrganizerEvents(db: Db, organizerId: string, now: Date
     slug: event.slug,
     title: event.title,
     status: event.status,
+    visibility: event.visibility,
     category: event.category,
     startsAt: event.startsAt,
     endsAt: event.endsAt,

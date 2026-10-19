@@ -16,6 +16,7 @@ type Values = {
   startsAt: string;
   endsAt: string;
   isOnline: boolean;
+  unlisted: boolean;
   location: string;
   city: string;
   capacity: string;
@@ -31,6 +32,7 @@ function initialValues(event?: OrganizerEvent): Values {
       startsAt: toLocalInput(event.startsAt),
       endsAt: toLocalInput(event.endsAt),
       isOnline: event.isOnline,
+      unlisted: event.visibility === "unlisted",
       location: event.location,
       city: event.isOnline ? "" : event.city,
       capacity: String(event.capacity),
@@ -46,6 +48,7 @@ function initialValues(event?: OrganizerEvent): Values {
     startsAt: `${day}T18:00`,
     endsAt: `${day}T20:00`,
     isOnline: false,
+    unlisted: false,
     location: "",
     city: "",
     capacity: "50",
@@ -69,6 +72,7 @@ export function EventForm({ event }: { event?: OrganizerEvent }) {
       startsAt: fromLocalInput(values.startsAt).toISOString(),
       endsAt: fromLocalInput(values.endsAt).toISOString(),
       isOnline: values.isOnline,
+      visibility: values.unlisted ? ("unlisted" as const) : ("public" as const),
       location: values.location,
       city: values.isOnline ? "" : values.city,
       capacity: Number(values.capacity),
@@ -224,6 +228,16 @@ export function EventForm({ event }: { event?: OrganizerEvent }) {
           onChange={(e) => set("capacity", e.target.value)}
         />
       </div>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" className="mt-1" checked={values.unlisted} onChange={(e) => set("unlisted", e.target.checked)} />
+        <span>
+          Unlisted
+          <span className="block text-[13px] text-muted">
+            It won&apos;t show up in browse or search. Anyone you send the link to can still see it and register.
+          </span>
+        </span>
+      </label>
+
       {event && (
         <p className="text-[13px] text-muted">
           Raising the capacity moves people off the waitlist right away. If you change the time or place, everyone

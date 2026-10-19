@@ -43,7 +43,8 @@ async function Dashboard({ params }: { params: PageProps<"/organize/[id]">["para
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight text-balance">{event.title}</h1>
           <p className="mt-1 text-sm text-muted">
-            <EventStatusBadge status={event.status} endsAt={event.endsAt} /> · {formatFullDate(event.startsAt)},{" "}
+            <EventStatusBadge status={event.status} endsAt={event.endsAt} />
+            {event.visibility === "unlisted" && " (unlisted)"} · {formatFullDate(event.startsAt)},{" "}
             {formatTimeRange(event.startsAt, event.endsAt)} · {event.isOnline ? "Online" : `${event.location}, ${event.city}`}
           </p>
         </div>

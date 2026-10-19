@@ -47,6 +47,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
           <span>{CATEGORY_LABELS[event.category]}</span>
           {event.status === "draft" && <Badge tone="muted">Draft, only you can see this</Badge>}
           {event.status === "cancelled" && <Badge tone="bad">Cancelled</Badge>}
+          {event.visibility === "unlisted" && <span>· Unlisted, only people with the link can see it</span>}
         </div>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight text-balance">{event.title}</h1>
         <p className="mt-2 text-muted">Hosted by {event.organizerName}</p>

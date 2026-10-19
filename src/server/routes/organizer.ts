@@ -35,6 +35,7 @@ const eventBody = z.object({
   startsAt: date("start time"),
   endsAt: date("end time"),
   isOnline: z.boolean(),
+  visibility: z.enum(["public", "unlisted"]).default("public"),
   location: z.string().trim().min(2, "Add a location or meeting link.").max(300),
   city: z.string().trim().max(80).default(""),
   capacity: z
