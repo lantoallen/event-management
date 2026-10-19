@@ -85,6 +85,11 @@ export function AuthForm({ mode, demo }: { mode: "login" | "signup"; demo: boole
             className="input"
           />
           {mode === "signup" && <p className="mt-1 text-[13px] text-muted">At least 8 characters.</p>}
+          {mode === "login" && (
+            <Link href="/forgot-password" className="mt-1 inline-block text-[13px] text-muted hover:text-ink">
+              Forgot your password?
+            </Link>
+          )}
         </div>
         {error && (
           <p role="alert" className="text-sm text-bad">

@@ -38,6 +38,7 @@ type Recipient = { id: string; name: string; email: string };
 type EventInfo = Pick<Event, "id" | "title" | "startsAt" | "endsAt" | "isOnline" | "location" | "city">;
 
 export type EmailKind =
+  | "password_reset"
   | "confirmed"
   | "waitlisted"
   | "promoted"
@@ -46,7 +47,7 @@ export type EmailKind =
   | "event_updated"
   | "reminder";
 
-type Draft = { kind: EmailKind; userId: string; eventId: string; to: string; subject: string; body: string };
+type Draft = { kind: EmailKind; userId: string; eventId: string | null; to: string; subject: string; body: string };
 
 const firstName = (name: string) => name.split(" ")[0];
 
@@ -60,6 +61,16 @@ const signOff = DEMO_MODE
   : `\n\n${APP_NAME}`;
 
 export const templates = {
+  passwordReset(user: Recipient, resetUrl: string): Draft {
+    return {
+      kind: "password_reset",
+      userId: user.id,
+      eventId: null,
+      to: user.email,
+      subject: "Reset your password",
+      body: `Hi ${firstName(user.name)},\n\nSomeone asked to reset the password for your ${APP_NAME} account. If it was you, set a new one here (the link works for an hour):\n\n${resetUrl}\n\nIf it wasn't you, you can ignore this email and your password stays the same.${signOff}`,
+    };
+  },
   confirmed(user: Recipient, event: EventInfo, ticketUrl: string): Draft {
     return {
       kind: "confirmed",

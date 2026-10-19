@@ -1,8 +1,8 @@
 import { createHash, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, isNull } from "drizzle-orm";
 import type { Db } from "../db/client";
-import { sessions, users } from "../db/schema";
-import { conflict, unauthorized } from "../errors";
+import { passwordResets, sessions, users } from "../db/schema";
+import { badRequest, conflict, unauthorized } from "../errors";
 
 export type SessionUser = { id: string; name: string; email: string };
 
@@ -79,4 +79,44 @@ export async function getSessionUser(db: Db, token: string, now: Date) {
 
 export async function deleteSession(db: Db, token: string) {
   await db.delete(sessions).where(eq(sessions.id, hashToken(token)));
+}
+
+const RESET_MINUTES = 60;
+
+// Returns null for unknown emails so the caller can answer the same way
+// either way and not reveal who has an account.
+export async function requestPasswordReset(db: Db, email: string, now: Date) {
+  const [user] = await db
+    .select({ id: users.id, name: users.name, email: users.email })
+    .from(users)
+    .where(eq(users.email, normalizeEmail(email)));
+  if (!user) return null;
+  const token = randomBytes(32).toString("base64url");
+  await db.insert(passwordResets).values({
+    id: hashToken(token),
+    userId: user.id,
+    expiresAt: new Date(now.getTime() + RESET_MINUTES * 60_000),
+  });
+  return { user, token };
+}
+
+export async function resetPassword(db: Db, token: string, password: string, now: Date) {
+  return db.transaction(async (tx) => {
+    const [reset] = await tx
+      .select()
+      .from(passwordResets)
+      .where(and(eq(passwordResets.id, hashToken(token)), isNull(passwordResets.usedAt), gt(passwordResets.expiresAt, now)))
+      .for("update");
+    if (!reset) throw badRequest("This reset link has expired or was already used. Ask for a new one.", "invalid_token");
+
+    await tx.update(passwordResets).set({ usedAt: now }).where(eq(passwordResets.id, reset.id));
+    const [user] = await tx
+      .update(users)
+      .set({ passwordHash: await hashPassword(password) })
+      .where(eq(users.id, reset.userId))
+      .returning({ id: users.id, name: users.name, email: users.email });
+    // Whoever knew the old password is signed out everywhere.
+    await tx.delete(sessions).where(eq(sessions.userId, user.id));
+    return user;
+  });
 }

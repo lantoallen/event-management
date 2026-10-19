@@ -42,6 +42,22 @@ export const sessions = pgTable(
   (t) => [index("sessions_user_idx").on(t.userId)],
 );
 
+// One-time links for resetting a forgotten password. Like sessions, only a
+// hash of the token is stored.
+export const passwordResets = pgTable(
+  "password_resets",
+  {
+    id: text("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index("password_resets_user_idx").on(t.userId)],
+);
+
 export const eventCategory = pgEnum("event_category", [
   "tech",
   "music",
