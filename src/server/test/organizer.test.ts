@@ -191,6 +191,26 @@ describe("organizer dashboard", () => {
     expect(online.json.error.message).toBe("For online events, put the meeting link in the location.");
   });
 
+  it("won't edit an event that already happened, or move a live one into the past", async () => {
+    const org = await h.user();
+    const event = await h.event(org, { startsAt: h.hoursFromNow(2), endsAt: h.hoursFromNow(3) });
+    const current = (await org.as("GET", `/api/organizer/events/${event.id}`)).json.event;
+
+    const past = await org.as("PATCH", `/api/organizer/events/${event.id}`, {
+      ...current,
+      startsAt: h.hoursFromNow(-5),
+      endsAt: h.hoursFromNow(-4),
+    });
+    expect(past.status).toBe(400);
+    expect(past.json.error.message).toBe("Pick a start time in the future.");
+
+    const start = h.now;
+    h.setNow(new Date(start.getTime() + 4 * 3_600_000));
+    const ended = await org.as("PATCH", `/api/organizer/events/${event.id}`, { ...current, title: "Too late" });
+    h.setNow(start);
+    expect(ended.json.error.code).toBe("event_ended");
+  });
+
   it("tells attendees when the time or place changes", async () => {
     const { org, event, people } = await setup(2);
     h.sent.length = 0;
