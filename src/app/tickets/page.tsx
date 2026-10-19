@@ -65,25 +65,32 @@ function TicketGroup({ title, tickets, empty }: { title: string; tickets: Ticket
             <li key={t.ticketCode}>
               <Link
                 href={t.status === "confirmed" ? `/tickets/${t.ticketCode}` : `/events/${t.event.slug}`}
-                className="flex items-center gap-4 px-4 py-3 hover:bg-surface-2"
+                className="flex items-start gap-4 px-4 py-3 hover:bg-surface-2 sm:items-center"
               >
-                <div className="w-24 shrink-0 text-[13px] text-muted">
+                {/* Wider screens get a date column. Phones put the date in the line
+                    under the title so the title has the full width. */}
+                <div className="hidden w-24 shrink-0 text-[13px] text-muted sm:block">
                   <div>{formatWeekdayDate(t.event.startsAt)}</div>
                   <div>{formatTime(t.event.startsAt)}</div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{t.event.title}</p>
+                  <p className="font-medium sm:truncate">{t.event.title}</p>
                   <p className="text-[13px] text-muted">
+                    <span className="sm:hidden">
+                      {formatWeekdayDate(t.event.startsAt)}, {formatTime(t.event.startsAt)} ·{" "}
+                    </span>
                     {t.event.city}
                     {t.checkedInAt && ` · checked in ${formatShortDate(t.checkedInAt)}, ${formatTime(t.checkedInAt)}`}
                   </p>
                 </div>
-                <TicketBadge
-                  status={t.status}
-                  checkedInAt={t.checkedInAt}
-                  waitlistPosition={t.waitlistPosition}
-                  eventStatus={t.event.status}
-                />
+                <span className="shrink-0 pt-0.5 sm:pt-0">
+                  <TicketBadge
+                    status={t.status}
+                    checkedInAt={t.checkedInAt}
+                    waitlistPosition={t.waitlistPosition}
+                    eventStatus={t.event.status}
+                  />
+                </span>
               </Link>
             </li>
           ))}
