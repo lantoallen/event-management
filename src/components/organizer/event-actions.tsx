@@ -28,52 +28,61 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
     });
   }
 
+  const link = "text-muted hover:text-ink disabled:opacity-50";
+  const live = status === "published" && !ended;
+
   return (
-    <div className="flex flex-col items-start gap-2 md:items-end">
-      <div className="flex flex-wrap gap-2">
-        {status === "published" && !ended && (
-          <Link href={`/organize/${eventId}/check-in`} className="btn-primary">
-            Check people in
-          </Link>
-        )}
-        {status === "draft" && (
-          <button
-            type="button"
-            className="btn-primary"
-            disabled={pending}
-            onClick={() => run(null, () => unwrap(route.publish.$post(param)))}
-          >
-            Publish
-          </button>
-        )}
-        {status !== "cancelled" && !ended && (
+    <div className="flex flex-col items-start gap-3 md:shrink-0 md:items-end">
+      {(live || status === "draft") && (
+        <div className="flex flex-wrap gap-2">
+          {live && (
+            <Link href={`/organize/${eventId}/check-in`} className="btn-primary">
+              Check people in
+            </Link>
+          )}
+          {status === "draft" && (
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={pending}
+              onClick={() => run(null, () => unwrap(route.publish.$post(param)))}
+            >
+              Publish
+            </button>
+          )}
           <Link href={`/organize/${eventId}/edit`} className="btn-secondary">
             Edit
           </Link>
-        )}
-        <Link href={`/events/${slug}`} className="btn-secondary">
+        </div>
+      )}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm md:flex-nowrap">
+        <Link href={`/events/${slug}`} className={link}>
           Public page
         </Link>
         <button
           type="button"
-          className="btn-secondary"
+          className={link}
           disabled={pending}
           onClick={() =>
-            run(null, async () => {
-              const { event } = await unwrap(route.duplicate.$post(param));
-              router.push(`/organize/${event.id}/edit`);
-            }, () => {})
+            run(
+              null,
+              async () => {
+                const { event } = await unwrap(route.duplicate.$post(param));
+                router.push(`/organize/${event.id}/edit`);
+              },
+              () => {},
+            )
           }
         >
           Duplicate
         </button>
-        <a href={`/api/organizer/events/${eventId}/attendees/export`} className="btn-secondary" download>
+        <a href={`/api/organizer/events/${eventId}/attendees/export`} className={link} download>
           Export CSV
         </a>
-        {status === "published" && !ended && (
+        {live && (
           <button
             type="button"
-            className="btn-danger"
+            className="text-bad hover:underline disabled:opacity-50"
             disabled={pending}
             onClick={() =>
               run("Cancel this event? Everyone registered or on the waitlist gets an email. This can't be undone.", () =>
@@ -87,7 +96,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
         {status === "draft" && (
           <button
             type="button"
-            className="btn-danger"
+            className="text-bad hover:underline disabled:opacity-50"
             disabled={pending}
             onClick={() =>
               run(
@@ -100,7 +109,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
               )
             }
           >
-            Delete
+            Delete draft
           </button>
         )}
       </div>

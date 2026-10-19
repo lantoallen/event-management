@@ -39,32 +39,34 @@ async function Dashboard({ params }: { params: PageProps<"/organize/[id]">["para
     <div className="mt-4 space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <EventStatusBadge status={event.status} endsAt={event.endsAt} />
-          </div>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-balance">{event.title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-balance">{event.title}</h1>
           <p className="mt-1 text-sm text-muted">
-            {formatFullDate(event.startsAt)}, {formatTimeRange(event.startsAt, event.endsAt)} ·{" "}
-            {event.isOnline ? "Online" : `${event.location}, ${event.city}`}
+            <EventStatusBadge status={event.status} endsAt={event.endsAt} /> · {formatFullDate(event.startsAt)},{" "}
+            {formatTimeRange(event.startsAt, event.endsAt)} · {event.isOnline ? "Online" : `${event.location}, ${event.city}`}
           </p>
         </div>
         <EventActions eventId={event.id} slug={event.slug} status={event.status} ended={ended} />
       </div>
 
-      <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="Going" value={stats.confirmed} detail={`of ${stats.capacity} spots, ${Math.round(stats.fillRate * 100)}% full`} />
-        <Stat label="Waitlist" value={stats.waitlisted} detail={stats.waitlisted ? "move up when people cancel" : "nobody waiting"} />
+      {/* One strip with hairline dividers: the gap shows the border color behind the cells. */}
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-4">
+        <Stat label="Going" value={stats.confirmed} suffix={`/ ${stats.capacity}`} />
         <Stat
           label="Checked in"
           value={stats.checkedIn}
-          detail={stats.confirmed ? `${Math.round(stats.checkInRate * 100)}% of people going` : "no one going yet"}
+          suffix={stats.checkedIn ? `${Math.round(stats.checkInRate * 100)}%` : undefined}
         />
-        <Stat label="Cancelled" value={stats.cancelled} detail="gave up their spot" />
+        <Stat label="Waitlist" value={stats.waitlisted} />
+        <Stat label="Cancelled" value={stats.cancelled} />
       </dl>
 
       <section className="card p-5">
-        <h2 className="font-medium">Sign-ups per day</h2>
-        <p className="text-[13px] text-muted">Registrations and waitlist joins, by the day they happened.</p>
+        <div className="flex items-baseline justify-between">
+          <h2 className="font-medium">Sign-ups per day</h2>
+          <span className="text-[13px] text-muted tabular-nums">
+            {stats.daily.reduce((n, d) => n + d.count, 0)} total
+          </span>
+        </div>
         <SignupChart daily={stats.daily} />
       </section>
 
@@ -75,12 +77,14 @@ async function Dashboard({ params }: { params: PageProps<"/organize/[id]">["para
   );
 }
 
-function Stat({ label, value, detail }: { label: string; value: number; detail: string }) {
+function Stat({ label, value, suffix }: { label: string; value: number; suffix?: string }) {
   return (
-    <div className="card p-4">
+    <div className="bg-surface px-4 py-3">
       <dt className="text-[13px] text-muted">{label}</dt>
-      <dd className="mt-1 text-2xl font-semibold tabular-nums">{value}</dd>
-      <dd className="text-[13px] text-muted">{detail}</dd>
+      <dd className="mt-0.5 text-2xl font-semibold tabular-nums">
+        {value}
+        {suffix && <span className="ml-1.5 text-sm font-normal text-muted">{suffix}</span>}
+      </dd>
     </div>
   );
 }
