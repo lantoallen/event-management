@@ -66,6 +66,9 @@ describe("sample data", () => {
     const first = await h.request("GET", "/api/cron/reminders");
     // Only "Design to code study group" (6 PM today) starts within a day.
     expect(first.json.queued).toBe(18);
+    // The harness clock is 10 AM, so the 6 PM session is later today.
+    expect(h.sent.some((m) => m.subject === "Today: Design to code study group")).toBe(true);
+    expect(h.sent.some((m) => m.subject.startsWith("Tomorrow:"))).toBe(false);
     expect((await h.request("GET", "/api/cron/reminders")).json.queued).toBe(0);
   });
 

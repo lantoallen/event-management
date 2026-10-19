@@ -1,6 +1,6 @@
 import { and, eq, inArray, desc } from "drizzle-orm";
 import { APP_NAME, DEMO_MODE } from "@/lib/config";
-import { formatFullDate, formatTimeRange } from "@/lib/time";
+import { formatFullDate, formatTimeRange, relativeDays } from "@/lib/time";
 import type { Db } from "../db/client";
 import { emails, type Event } from "../db/schema";
 
@@ -152,14 +152,17 @@ export const templates = {
       body: `Hi ${firstName(user.name)},\n\n${message.from} sent a message about ${event.title}:\n\n${message.body}\n\n${whenAndWhere(event)}\nEvent page: ${message.url}\n\nYou're getting this because you registered for this event.${signOff}`,
     };
   },
-  reminder(user: Recipient, event: EventInfo, ticketUrl: string): Draft {
+  // Sent within a day of the start, which can be later today or tomorrow.
+  reminder(user: Recipient, event: EventInfo, ticketUrl: string, now: Date): Draft {
+    const day = relativeDays(event.startsAt, now);
+    const when = day === "Today" ? "today" : day === "Tomorrow" ? "tomorrow" : "coming up soon";
     return {
       kind: "reminder",
       userId: user.id,
       eventId: event.id,
       to: user.email,
-      subject: `Tomorrow: ${event.title}`,
-      body: `Hi ${firstName(user.name)},\n\nJust a reminder that ${event.title} is coming up.\n\n${whenAndWhere(event)}\n\nHave your ticket ready: ${ticketUrl}${signOff}`,
+      subject: `${day === "Today" || day === "Tomorrow" ? day : "Coming up"}: ${event.title}`,
+      body: `Hi ${firstName(user.name)},\n\nJust a reminder that ${event.title} is ${when}.\n\n${whenAndWhere(event)}\n\nHave your ticket ready: ${ticketUrl}${signOff}`,
     };
   },
 };
