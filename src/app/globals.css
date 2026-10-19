@@ -117,7 +117,8 @@ body {
   .card {
     @apply rounded-lg border border-line bg-surface;
   }
+  /* Underlined, not just colored, so links stand out for color-blind readers too. */
   .link {
-    @apply text-accent underline-offset-2 hover:underline;
+    @apply text-accent underline decoration-accent/40 underline-offset-2 hover:decoration-accent;
   }
 }
