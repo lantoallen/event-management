@@ -109,5 +109,5 @@ function StatusCell({ attendee: a }: { attendee: Attendee }) {
       </span>
     );
   }
-  return <Badge tone="accent">Going</Badge>;
+  return <Badge tone="plain">Going</Badge>;
 }

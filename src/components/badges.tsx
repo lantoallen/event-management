@@ -1,17 +1,15 @@
+// Statuses are plain text. Only the ones that need attention get a color,
+// so a list where everything is fine stays quiet.
 const tones = {
-  ok: "bg-ok-soft text-ok",
-  warn: "bg-warn-soft text-warn",
-  bad: "bg-bad-soft text-bad",
-  muted: "bg-surface-2 text-muted",
-  accent: "bg-accent-soft text-accent",
+  plain: "text-ink",
+  ok: "text-ok",
+  warn: "text-warn",
+  bad: "text-bad",
+  muted: "text-muted",
 };
 
 export function Badge({ tone, children }: { tone: keyof typeof tones; children: React.ReactNode }) {
-  return (
-    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium whitespace-nowrap ${tones[tone]}`}>
-      {children}
-    </span>
-  );
+  return <span className={`text-[13px] font-medium whitespace-nowrap ${tones[tone]}`}>{children}</span>;
 }
 
 type TicketState = {
