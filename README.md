@@ -87,7 +87,7 @@ npm run db:generate # new migration after editing src/server/db/schema.ts
 
 Import the repo on [Vercel](https://vercel.com) (Hobby plan) and add `CRON_SECRET` (any long random string) as an environment variable. Two daily cron jobs reset the demo at midnight Manila time and send reminders for the next day's events.
 
-**Without a database.** If `DATABASE_URL` isn't set, the API runs an in-memory Postgres (PGlite) and loads the sample data when it starts, booting from a snapshot the build saves. Pages get their data from the API over HTTP in this mode, since Vercel runs them as separate functions that would otherwise each have their own copy. It's the quickest way to get a live demo, but anything visitors add disappears whenever Vercel restarts the instance.
+**Without a database.** If `DATABASE_URL` isn't set, the API runs an in-memory Postgres (PGlite) and loads the sample data when it starts. Treat this as a quick preview only: Vercel spreads requests across several server instances, each with its own copy of the data, so sign-ins and registrations go missing at random. Add a real database before sharing the link.
 
 **With a database.** Create a free Postgres database on [Neon](https://neon.tech), copy the pooled connection string, and add it as `DATABASE_URL`. On the next deploy the build applies migrations and loads the sample data if the database is empty (see `vercel.json`). From then on, data stays put until the daily reset.
 
