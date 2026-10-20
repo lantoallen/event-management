@@ -1,30 +1,35 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { BrowseSearch } from "@/components/browse-search";
 import { CategoryLabel } from "@/components/category-label";
 import { Availability } from "@/components/event-card";
 import { Column, FullBleed } from "@/components/full-bleed";
 import { CATEGORY_COLOR, CATEGORY_LABELS } from "@/lib/categories";
 import { load, serverApi } from "@/lib/server-api";
-import { formatTime, formatWeekdayDate, manilaDayKey, relativeDays } from "@/lib/time";
+import {
+  formatDay,
+  formatFullDate,
+  formatMonth,
+  formatTime,
+  formatWeekday,
+  formatWeekdayDate,
+  fromLocalInput,
+  manilaDayKey,
+  relativeDays,
+} from "@/lib/time";
 import { categories, type EventCategory } from "@/server/db/schema";
 
-type Search = { q?: string; category?: string; when?: string; page?: string };
-
-const WHEN = [
-  ["all", "Any time"],
-  ["today", "Today"],
-  ["weekend", "This weekend"],
-  ["week", "Next 7 days"],
-  ["month", "Next 30 days"],
-] as const;
+type Search = { q?: string; category?: string; when?: string; day?: string; page?: string };
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
 async function readSearch(searchParams: PageProps<"/events">["searchParams"]): Promise<Search> {
   const sp = await searchParams;
-  return { q: first(sp.q), category: first(sp.category), when: first(sp.when), page: first(sp.page) };
+  return { q: first(sp.q), category: first(sp.category), when: first(sp.when), day: first(sp.day), page: first(sp.page) };
 }
+
+const validCategory = (c?: string) => (categories.includes(c as EventCategory) ? (c as EventCategory) : undefined);
 
 function hrefWith(search: Search, changes: Partial<Search>) {
   const params = new URLSearchParams();
@@ -45,7 +50,10 @@ export default function BrowsePage({ searchParams }: PageProps<"/events">) {
         <Column className="pt-4 pb-8 md:pt-6 md:pb-10">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Upcoming events</h1>
           <Suspense fallback={<div className="mt-5 h-[96px] sm:h-11" />}>
-            <SearchBar searchParams={searchParams} />
+            <BrowseSearch />
+          </Suspense>
+          <Suspense fallback={<div className="mt-6 h-[74px]" />}>
+            <DayPicker searchParams={searchParams} />
           </Suspense>
         </Column>
       </FullBleed>
@@ -65,29 +73,61 @@ export default function BrowsePage({ searchParams }: PageProps<"/events">) {
   );
 }
 
-async function SearchBar({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
+// The next two weeks as tiles, each with a dot per event (up to three).
+// Picking a day shows only that day; picking it again goes back to all.
+async function DayPicker({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
   const search = await readSearch(searchParams);
-  const field = "h-11 w-full rounded-md border-0 bg-paper px-3 text-sm text-[#1d1b18] placeholder:text-[#8a847a] focus:outline-2 focus:outline-[#8fdcc0]";
+  const client = await serverApi();
+  const { days } = await load(client.api.events.days.$get({ query: { q: search.q, category: validCategory(search.category) } }));
   return (
-    // Phones: search box and button on one row, the date filter under them. Wider: one row.
-    <form action="/events" role="search" data-browse-search className="mt-5 grid max-w-2xl grid-cols-[1fr_auto] gap-2 sm:flex">
-      {search.category && <input type="hidden" name="category" value={search.category} />}
-      <label className="sr-only" htmlFor="q">
-        Search
-      </label>
-      <input id="q" name="q" type="search" data-search defaultValue={search.q} placeholder="Search by title or city" className={field} />
-      <label className="sr-only" htmlFor="when">
-        When
-      </label>
-      <select id="when" name="when" defaultValue={search.when ?? "all"} className={`${field} col-span-2 row-start-2 sm:w-44`}>
-        {WHEN.map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
-      </select>
-      <button className="btn h-11 bg-hero-ink text-hero hover:opacity-90">Search</button>
-    </form>
+    <nav aria-label="Pick a day" className="-mx-4 mt-6 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+      <ul className="flex gap-2">
+        {days.map(({ day, count }, i) => {
+          const date = fromLocalInput(`${day}T12:00`);
+          const selected = search.day === day;
+          const top = i === 0 ? "Today" : formatDay(date) === "1" ? formatMonth(date) : formatWeekday(date);
+          const tile = "flex w-14 shrink-0 flex-col items-center gap-0.5 rounded-lg border py-2";
+          const body = (
+            <>
+              <span className="sr-only">
+                {formatFullDate(date)}: {count === 0 ? "nothing on" : `${count} ${count === 1 ? "event" : "events"}`}
+              </span>
+              <span className="text-[11px] font-medium tracking-wide uppercase" aria-hidden="true">
+                {top}
+              </span>
+              <span className="text-lg leading-tight font-semibold tabular-nums" aria-hidden="true">
+                {formatDay(date)}
+              </span>
+              <span className="flex h-1.5 gap-0.5" aria-hidden="true">
+                {Array.from({ length: Math.min(count, 3) }, (_, j) => (
+                  <span key={j} className={`h-1.5 w-1.5 rounded-full ${selected ? "bg-[#0f6b55]" : "bg-[#8fdcc0]"}`} />
+                ))}
+              </span>
+            </>
+          );
+          return (
+            <li key={day}>
+              {count === 0 && !selected ? (
+                <span className={`${tile} border-white/10 text-hero-muted`}>{body}</span>
+              ) : (
+                <Link
+                  href={hrefWith(search, { day: selected ? undefined : day, when: undefined })}
+                  scroll={false}
+                  aria-current={selected ? "date" : undefined}
+                  className={`${tile} transition-colors ${
+                    selected
+                      ? "border-paper bg-paper text-[#1d1b18]"
+                      : "border-white/20 bg-black/20 text-hero-ink hover:border-white/40 hover:bg-black/30"
+                  }`}
+                >
+                  {body}
+                </Link>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
 
@@ -142,17 +182,33 @@ type AgendaEvent = {
 async function Agenda({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
   const search = await readSearch(searchParams);
   const client = await serverApi();
-  const category = categories.includes(search.category as EventCategory) ? search.category : undefined;
   const { events, page, hasMore } = await load(
     client.api.events.$get({
       query: {
         q: search.q,
-        category: category as EventCategory | undefined,
+        category: validCategory(search.category),
         when: search.when as "all" | undefined,
+        day: search.day,
         page: search.page,
       },
     }),
   );
+  const pickedDay = search.day && /^\d{4}-\d{2}-\d{2}$/.test(search.day) ? fromLocalInput(`${search.day}T12:00`) : null;
+
+  if (events.length === 0 && pickedDay) {
+    return (
+      <div className="card p-8 text-center">
+        <p className="font-medium">Nothing on {formatWeekdayDate(pickedDay)}.</p>
+        <p className="mt-1 text-sm text-muted">
+          Pick another day, or{" "}
+          <Link href={hrefWith(search, { day: undefined })} scroll={false} className="link">
+            see all days
+          </Link>
+          .
+        </p>
+      </div>
+    );
+  }
 
   if (events.length === 0) {
     return (
@@ -172,6 +228,14 @@ async function Agenda({ searchParams }: { searchParams: PageProps<"/events">["se
   const now = new Date();
   return (
     <>
+      {pickedDay && (
+        <p className="mb-4 text-sm text-muted">
+          {events.length} {events.length === 1 ? "event" : "events"} on {formatWeekdayDate(pickedDay)}.{" "}
+          <Link href={hrefWith(search, { day: undefined })} scroll={false} className="link">
+            Show all days
+          </Link>
+        </p>
+      )}
       <div className="space-y-8">
         {groupByDay(events).map(({ day, items }) => (
           <section key={day}>

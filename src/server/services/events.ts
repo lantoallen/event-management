@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { and, asc, desc, eq, gt, gte, ilike, lt, ne, or, sql, type SQL } from "drizzle-orm";
-import { manilaStartOfDay, manilaWeekday } from "@/lib/time";
+import { fromLocalInput, manilaDayKey, manilaStartOfDay, manilaWeekday } from "@/lib/time";
 import type { Db } from "../db/client";
 import { events, registrations, users, type Event, type EventCategory } from "../db/schema";
 import { badRequest, conflict, forbidden, notFound } from "../errors";
@@ -90,12 +90,8 @@ function dateRange(when: When, now: Date): [Date, Date] | null {
   }
 }
 
-export async function listPublicEvents(
-  db: Db,
-  filters: { q?: string; category?: EventCategory; when?: When; page?: number },
-  now: Date,
-) {
-  const counts = countsFor(db);
+// Published, public, not over yet, and matching the search box and category.
+function publicConditions(filters: { q?: string; category?: EventCategory }, now: Date) {
   const conditions: (SQL | undefined)[] = [
     eq(events.status, "published"),
     eq(events.visibility, "public"),
@@ -109,8 +105,24 @@ export async function listPublicEvents(
       or(ilike(events.title, pattern), ilike(events.summary, pattern), ilike(events.city, pattern)),
     );
   }
-  const range = dateRange(filters.when ?? "all", now);
-  if (range) conditions.push(lt(events.startsAt, range[1]));
+  return conditions;
+}
+
+export async function listPublicEvents(
+  db: Db,
+  // `day` is a Manila date like "2026-10-24": events starting that day. It wins over `when`.
+  filters: { q?: string; category?: EventCategory; when?: When; day?: string; page?: number },
+  now: Date,
+) {
+  const counts = countsFor(db);
+  const conditions = publicConditions(filters, now);
+  if (filters.day) {
+    const start = fromLocalInput(`${filters.day}T00:00`);
+    conditions.push(gte(events.startsAt, start), lt(events.startsAt, manilaStartOfDay(start, 1)));
+  } else {
+    const range = dateRange(filters.when ?? "all", now);
+    if (range) conditions.push(lt(events.startsAt, range[1]));
+  }
 
   const page = Math.max(1, filters.page ?? 1);
   const rows = await db
@@ -159,6 +171,32 @@ function toCard({ event, organizerName, confirmed, waitlisted }: CardRow) {
     confirmed,
     waitlisted,
     spotsLeft: Math.max(0, event.capacity - confirmed),
+  };
+}
+
+export const DAY_PICKER_DAYS = 14;
+
+// How many events start on each of the next two weeks' days, for the day
+// picker on the browse page. It follows the search box and category, so the
+// numbers match what picking that day would show.
+export async function eventDays(db: Db, filters: { q?: string; category?: EventCategory }, now: Date) {
+  const rows = await db
+    .select({ startsAt: events.startsAt })
+    .from(events)
+    .where(
+      and(
+        ...publicConditions(filters, now),
+        gte(events.startsAt, manilaStartOfDay(now)),
+        lt(events.startsAt, manilaStartOfDay(now, DAY_PICKER_DAYS)),
+      ),
+    );
+  const counts = new Map<string, number>();
+  for (const { startsAt } of rows) counts.set(manilaDayKey(startsAt), (counts.get(manilaDayKey(startsAt)) ?? 0) + 1);
+  return {
+    days: Array.from({ length: DAY_PICKER_DAYS }, (_, i) => {
+      const day = manilaDayKey(manilaStartOfDay(now, i));
+      return { day, count: counts.get(day) ?? 0 };
+    }),
   };
 }
 

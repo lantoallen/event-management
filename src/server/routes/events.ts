@@ -3,15 +3,18 @@ import { z } from "zod";
 import { categories } from "../db/schema";
 import { requireUser, ticketUrl, validate, type Env } from "../http";
 import { deliverEmails } from "../services/email";
-import { eventsOverview, getEventPage, listPublicEvents } from "../services/events";
+import { eventDays, eventsOverview, getEventPage, listPublicEvents } from "../services/events";
 import { cancelRegistration, register } from "../services/registrations";
 
 const listQuery = z.object({
   q: z.string().max(100).optional(),
   category: z.enum(categories).optional().catch(undefined),
   when: z.enum(["all", "today", "week", "weekend", "month"]).optional().catch(undefined),
+  day: z.iso.date().optional().catch(undefined),
   page: z.coerce.number().int().min(1).max(100).optional().catch(undefined),
 });
+
+const daysQuery = listQuery.pick({ q: true, category: true });
 
 const idParam = z.object({ id: z.uuid("We couldn't find that event.") });
 
@@ -23,6 +26,10 @@ export const eventRoutes = new Hono<Env>()
 
   .get("/overview", async (c) => {
     return c.json(await eventsOverview(c.get("deps").db, c.get("now")), 200);
+  })
+
+  .get("/days", validate("query", daysQuery), async (c) => {
+    return c.json(await eventDays(c.get("deps").db, c.req.valid("query"), c.get("now")), 200);
   })
 
   .get("/:slug", async (c) => {
