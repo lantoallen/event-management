@@ -189,7 +189,11 @@ async function Categories() {
               href={`/events?category=${c}`}
               className="card group lift flex h-full flex-col justify-between gap-6 p-4 hover:border-line-strong"
             >
-              <span className="h-2.5 w-2.5 rounded-sm" style={{ background: CATEGORY_COLOR[c] }} aria-hidden="true" />
+              <span
+                className="h-2.5 w-2.5 rounded-sm transition-[width] duration-200 group-hover:w-8"
+                style={{ background: CATEGORY_COLOR[c] }}
+                aria-hidden="true"
+              />
               <span>
                 <span className="block font-medium">{CATEGORY_LABELS[c]}</span>
                 <span className="text-[13px] text-muted">
