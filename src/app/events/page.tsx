@@ -108,7 +108,7 @@ async function DayPicker({ searchParams }: { searchParams: PageProps<"/events">[
           return (
             <li key={day}>
               {count === 0 && !selected ? (
-                <span className={`${tile} border-white/10 text-hero-muted`}>{body}</span>
+                <span className={`${tile} border-transparent bg-black/25 text-hero-muted`}>{body}</span>
               ) : (
                 <Link
                   href={hrefWith(search, { day: selected ? undefined : day, when: undefined })}
