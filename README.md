@@ -21,7 +21,10 @@ The live link runs in demo mode: the people and events are made up, the data res
 ## What it does
 
 **For attendees**
-- Browse upcoming events, search by title or city, and filter by category or date
+- Browse upcoming events by day, filter by category, or pick a day from a strip of the next two weeks
+- Search by title or city. The list updates as you type, and pressing / on any page jumps to the search box
+- Event pages count down to the start ("Starts in 3 hours") and show when an event is happening now
+- On phones, the main links sit in a tab bar along the bottom of the screen
 - Register in one click. When an event is full you join the waitlist and see your place in line
 - Get a ticket with a QR code. Online events only show the meeting link once you have a confirmed spot
 - Cancel or leave the waitlist. If you give up a spot, the next person in line gets it automatically
