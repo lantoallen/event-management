@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Badge } from "@/components/badges";
 import { CapacityMeter } from "@/components/capacity-meter";
 import { EventCard } from "@/components/event-card";
 import { RegisterPanel } from "@/components/register-panel";
 import { ShareButton } from "@/components/share-button";
 import { CategoryLabel } from "@/components/category-label";
+import { Column, FullBleed } from "@/components/full-bleed";
+import { CATEGORY_COLOR } from "@/lib/categories";
 import { mapsUrl } from "@/lib/maps";
 import { currentUser, load, serverApi } from "@/lib/server-api";
-import { formatFullDate, formatTimeRange } from "@/lib/time";
+import { formatDay, formatFullDate, formatMonth, formatTimeRange, formatWeekday } from "@/lib/time";
+import type { EventCategory } from "@/server/db/schema";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
   const { slug } = await params;
@@ -22,14 +24,22 @@ export async function generateMetadata({ params }: PageProps<"/events/[slug]">):
 
 export default function EventPage({ params }: PageProps<"/events/[slug]">) {
   return (
-    <>
-      <Link href="/events" className="text-sm text-muted hover:text-ink">
-        ← All events
-      </Link>
-      <Suspense fallback={<div className="mt-6 h-96 animate-pulse rounded-lg bg-surface-2" />}>
-        <EventDetail params={params} />
-      </Suspense>
-    </>
+    <Suspense fallback={<FullBleed className="-mt-8 h-56 bg-hero" />}>
+      <EventDetail params={params} />
+    </Suspense>
+  );
+}
+
+// A tear-off calendar page: the category's color on top, then the day.
+function CalendarDate({ date, category }: { date: string; category: EventCategory }) {
+  return (
+    <div className="w-[4.75rem] shrink-0 overflow-hidden rounded-lg bg-paper text-center text-[#1d1b18] shadow-[0_12px_24px_-12px_rgba(0,0,0,0.5)]">
+      <div className="py-1 text-[11px] font-semibold tracking-[0.14em] text-white uppercase" style={{ background: CATEGORY_COLOR[category] }}>
+        {formatMonth(date)}
+      </div>
+      <div className="pt-1 text-3xl leading-none font-semibold">{formatDay(date)}</div>
+      <div className="pt-1 pb-2 text-xs text-[#5d574f]">{formatWeekday(date)}</div>
+    </div>
   );
 }
 
@@ -43,21 +53,32 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
   const started = new Date(event.startsAt) <= new Date();
 
   return (
-    // On phones: title, then when/where/register, then the description. On wider
-    // screens the panel moves to a sticky right column next to both.
-    <div className="mt-4 grid grid-cols-1 gap-x-10 gap-y-6 md:grid-cols-[1fr_320px] md:grid-rows-[auto_auto_1fr]">
-      <header className="md:col-start-1">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-          <CategoryLabel category={event.category} />
-          {event.status === "draft" && <Badge tone="muted">Draft, only you can see this</Badge>}
-          {event.status === "cancelled" && <Badge tone="bad">Cancelled</Badge>}
-          {event.visibility === "unlisted" && <span>· Unlisted, only people with the link can see it</span>}
-        </div>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-balance">{event.title}</h1>
-        <p className="mt-2 text-muted">Hosted by {event.organizerName}</p>
-      </header>
+    <>
+      {/* Joined to the green header. The ticket panel below overlaps its bottom edge. */}
+      <FullBleed className="-mt-8 bg-hero text-hero-ink">
+        <Column className="pt-4 pb-8 md:pb-24">
+          <Link href="/events" className="text-sm text-hero-muted hover:text-hero-ink">
+            ← All events
+          </Link>
+          <header className="mt-5 flex items-start gap-5">
+            <CalendarDate date={event.startsAt} category={event.category} />
+            <div className="min-w-0 md:max-w-[calc(100%-360px)]">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-hero-muted">
+                <CategoryLabel category={event.category} />
+                {event.status === "draft" && <span className="font-medium text-[#f3d27a]">Draft, only you can see this</span>}
+                {event.status === "cancelled" && <span className="font-medium text-[#ffb3a8]">Cancelled</span>}
+                {event.visibility === "unlisted" && <span>· Unlisted, only people with the link can see it</span>}
+              </div>
+              <h1 className="mt-1 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">{event.title}</h1>
+              <p className="mt-2 text-hero-muted">Hosted by {event.organizerName}</p>
+            </div>
+          </header>
+        </Column>
+      </FullBleed>
 
-      <article className="md:col-start-1 md:row-start-2">
+      {/* Phones: the panel, then the description. Wider: description left, panel right. */}
+      <div className="mt-6 grid grid-cols-1 gap-x-10 gap-y-6 md:mt-8 md:grid-cols-[1fr_320px] md:grid-rows-[auto_1fr]">
+      <article className="md:col-start-1 md:row-start-1">
         <p className="text-lg leading-relaxed">{event.summary}</p>
         <div className="mt-4 space-y-4 leading-relaxed whitespace-pre-line text-ink/90">{event.description}</div>
       </article>
@@ -73,8 +94,8 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
         </section>
       )}
 
-      <aside className="row-start-2 md:col-start-2 md:row-span-3 md:row-start-1 md:sticky md:top-6 md:self-start">
-        <div className="card relative space-y-4 overflow-hidden p-5">
+      <aside className="row-start-1 md:col-start-2 md:row-span-2 md:row-start-1 md:-mt-36 md:sticky md:top-6 md:self-start">
+        <div className="card relative space-y-4 overflow-hidden p-5 shadow-[0_20px_40px_-24px_rgba(0,0,0,0.35)]">
           <div>
             <p className="font-medium">{formatFullDate(event.startsAt)}</p>
             <p className="text-sm text-muted">{formatTimeRange(event.startsAt, event.endsAt)}</p>
@@ -116,6 +137,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
           {event.status === "published" && <ShareButton title={event.title} path={`/events/${event.slug}`} />}
         </div>
       </aside>
-    </div>
+      </div>
+    </>
   );
 }

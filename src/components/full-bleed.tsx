@@ -1,6 +1,6 @@
 // Stretches a band to the full window width from inside the centered page
 // column. The body clips the sideways overflow this would otherwise cause.
-export function FullBleed({ className = "", children }: { className?: string; children: React.ReactNode }) {
+export function FullBleed({ className = "", children }: { className?: string; children?: React.ReactNode }) {
   return <div className={`relative left-1/2 w-screen -translate-x-1/2 ${className}`}>{children}</div>;
 }
 
