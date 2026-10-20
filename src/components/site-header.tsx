@@ -14,7 +14,7 @@ export function SiteHeader() {
           <TicketMark />
           {APP_NAME}
         </Link>
-        <nav className="hidden items-center gap-1 text-sm sm:flex">
+        <nav aria-label="Main" className="hidden items-center gap-1 text-sm sm:flex">
           <Suspense fallback={<NavLinks pathname={null} />}>
             <CurrentNav />
           </Suspense>
@@ -25,11 +25,6 @@ export function SiteHeader() {
           </Suspense>
         </div>
       </div>
-      <nav className="flex gap-1 overflow-x-auto border-t border-white/10 px-2 py-1.5 text-sm sm:hidden">
-        <Suspense fallback={<NavLinks pathname={null} compact />}>
-          <CurrentNav compact />
-        </Suspense>
-      </nav>
     </header>
   );
 }
