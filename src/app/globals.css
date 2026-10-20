@@ -150,6 +150,11 @@ body {
   background: none;
 }
 
+/* Browse has its own search box, so the header's steps aside there. */
+:root:has([data-browse-search]) .header-search {
+  display: none;
+}
+
 /* The two halves of a paper ticket, with notches cut where they meet so the
    photo behind shows through them. */
 @utility notch-bottom {

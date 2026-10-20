@@ -70,12 +70,12 @@ async function SearchBar({ searchParams }: { searchParams: PageProps<"/events">[
   const field = "h-11 w-full rounded-md border-0 bg-paper px-3 text-sm text-[#1d1b18] placeholder:text-[#8a847a] focus:outline-2 focus:outline-[#8fdcc0]";
   return (
     // Phones: search box and button on one row, the date filter under them. Wider: one row.
-    <form action="/events" className="mt-5 grid max-w-2xl grid-cols-[1fr_auto] gap-2 sm:flex">
+    <form action="/events" role="search" data-browse-search className="mt-5 grid max-w-2xl grid-cols-[1fr_auto] gap-2 sm:flex">
       {search.category && <input type="hidden" name="category" value={search.category} />}
       <label className="sr-only" htmlFor="q">
         Search
       </label>
-      <input id="q" name="q" type="search" defaultValue={search.q} placeholder="Search by title or city" className={field} />
+      <input id="q" name="q" type="search" data-search defaultValue={search.q} placeholder="Search by title or city" className={field} />
       <label className="sr-only" htmlFor="when">
         When
       </label>

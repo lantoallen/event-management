@@ -20,6 +20,7 @@ export function SiteHeader() {
           </Suspense>
         </nav>
         <div className="ml-auto flex items-center gap-3 text-sm">
+          <HeaderSearch />
           <Suspense fallback={<span className="h-8 w-20" />}>
             <Account />
           </Suspense>
@@ -51,6 +52,45 @@ async function Account() {
       </Link>
       <LogoutButton />
     </>
+  );
+}
+
+// Search from any page. Hidden on browse, which has its own search box.
+function HeaderSearch() {
+  return (
+    <form action="/events" role="search" className="header-search relative mr-2 hidden lg:block">
+      <label htmlFor="header-q" className="sr-only">
+        Search events
+      </label>
+      <svg
+        className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-[#6a655d]"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="6.5" />
+        <path d="m16 16 4.5 4.5" />
+      </svg>
+      <input
+        id="header-q"
+        name="q"
+        type="search"
+        data-search
+        placeholder="Search events"
+        className="peer h-8 w-52 rounded-md bg-paper pr-7 pl-8 text-[13px] text-[#1d1b18] placeholder:text-[#6a655d] focus:outline-2 focus:outline-[#8fdcc0]"
+      />
+      <kbd
+        className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded border border-[#d9d3c7] px-1 font-mono text-[11px] leading-4 text-[#6a655d] peer-focus:hidden"
+        title="Press / to search"
+      >
+        /
+      </kbd>
+    </form>
   );
 }
 
