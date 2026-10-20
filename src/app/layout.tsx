@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { CurrentTabs, TabLinks } from "@/components/tab-bar";
 import { APP_NAME, SITE_URL } from "@/lib/config";
 import "./globals.css";
 
@@ -25,7 +27,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col overflow-x-clip font-sans">
+      {/* The bottom padding keeps the footer clear of the phone tab bar. */}
+      <body className="flex min-h-full flex-col overflow-x-clip pb-[calc(3.5rem+env(safe-area-inset-bottom))] font-sans sm:pb-0">
         <a
           href="#content"
           className="sr-only rounded-md bg-ink px-3 py-2 text-sm text-bg focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"
@@ -37,6 +40,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <SiteFooter />
+        <nav
+          aria-label="Main"
+          className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] sm:hidden"
+        >
+          <Suspense fallback={<TabLinks pathname={null} />}>
+            <CurrentTabs />
+          </Suspense>
+        </nav>
       </body>
     </html>
   );
