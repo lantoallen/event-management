@@ -109,7 +109,11 @@ function TicketStub({ ticket: t }: { ticket: Ticket }) {
             eventStatus={t.event.status}
           />
           {t.checkedInAt && <span className="text-muted">{formatShortDate(t.checkedInAt)}, {formatTime(t.checkedInAt)}</span>}
-          {t.status === "confirmed" && !done && <span className="text-muted">Show ticket →</span>}
+          {t.status === "confirmed" && !done && (
+            <span className="text-muted group-hover:text-ink">
+              Show ticket <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+            </span>
+          )}
         </div>
       </div>
     </Link>
