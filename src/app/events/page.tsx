@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { EventCard, EventCardSkeleton } from "@/components/event-card";
-import { CATEGORY_LABELS } from "@/lib/categories";
+import { CategoryLabel } from "@/components/category-label";
+import { Availability } from "@/components/event-card";
+import { Column, FullBleed } from "@/components/full-bleed";
+import { CATEGORY_COLOR, CATEGORY_LABELS } from "@/lib/categories";
 import { load, serverApi } from "@/lib/server-api";
-import { formatMonthName, manilaDayKey, manilaStartOfDay } from "@/lib/time";
+import { formatTime, formatWeekdayDate, manilaDayKey, relativeDays } from "@/lib/time";
 import { categories, type EventCategory } from "@/server/db/schema";
 
 type Search = { q?: string; category?: string; when?: string; page?: string };
@@ -38,80 +40,106 @@ export const metadata: Metadata = { title: "Upcoming events" };
 export default function BrowsePage({ searchParams }: PageProps<"/events">) {
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Upcoming events</h1>
-      <Suspense fallback={<div className="mt-6 h-[92px]" />}>
-        <Filters searchParams={searchParams} />
-      </Suspense>
-      <Suspense fallback={<ResultsSkeleton />}>
-        <Results searchParams={searchParams} />
-      </Suspense>
+      {/* The search sits in a green band joined to the header. */}
+      <FullBleed className="-mt-8 bg-hero text-hero-ink">
+        <Column className="pt-4 pb-8 md:pt-6 md:pb-10">
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Upcoming events</h1>
+          <Suspense fallback={<div className="mt-5 h-[96px] sm:h-11" />}>
+            <SearchBar searchParams={searchParams} />
+          </Suspense>
+        </Column>
+      </FullBleed>
+
+      {/* Categories in a column on the left; on phones they become a row that scrolls sideways. */}
+      <div className="mt-6 grid grid-cols-1 gap-6 md:mt-8 md:grid-cols-[180px_minmax(0,1fr)] md:gap-10">
+        <Suspense fallback={<div className="h-10 md:h-80" />}>
+          <CategoryNav searchParams={searchParams} />
+        </Suspense>
+        <div className="min-w-0">
+          <Suspense fallback={<AgendaSkeleton />}>
+            <Agenda searchParams={searchParams} />
+          </Suspense>
+        </div>
+      </div>
     </>
   );
 }
 
-async function Filters({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
+async function SearchBar({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
   const search = await readSearch(searchParams);
+  const field = "h-11 w-full rounded-md border-0 bg-paper px-3 text-sm text-[#1d1b18] placeholder:text-[#8a847a] focus:outline-2 focus:outline-[#8fdcc0]";
   return (
-    <div className="mt-6 space-y-3">
-      {/* Phones: search box and button on one row, the date filter under them. Wider: one row. */}
-      <form action="/events" className="grid grid-cols-[1fr_auto] gap-2 sm:flex">
-        {search.category && <input type="hidden" name="category" value={search.category} />}
-        <label className="sr-only" htmlFor="q">
-          Search
-        </label>
-        <input
-          id="q"
-          name="q"
-          type="search"
-          defaultValue={search.q}
-          placeholder="Search by title or city"
-          className="input sm:max-w-sm"
-        />
-        <label className="sr-only" htmlFor="when">
-          When
-        </label>
-        <select
-          id="when"
-          name="when"
-          defaultValue={search.when ?? "all"}
-          className="input col-span-2 row-start-2 sm:w-44"
-        >
-          {WHEN.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <button className="btn-secondary">Search</button>
-      </form>
-      {/* One line that scrolls sideways on narrow screens instead of wrapping. */}
-      <div className="-mx-4 flex gap-x-5 overflow-x-auto border-b border-line px-4 text-sm whitespace-nowrap [scrollbar-width:none] sm:mx-0 sm:px-0">
-        <CategoryLink href={hrefWith(search, { category: undefined })} active={!search.category}>
-          All
-        </CategoryLink>
-        {categories.map((c) => (
-          <CategoryLink key={c} href={hrefWith(search, { category: c })} active={search.category === c}>
-            {CATEGORY_LABELS[c]}
-          </CategoryLink>
+    // Phones: search box and button on one row, the date filter under them. Wider: one row.
+    <form action="/events" className="mt-5 grid max-w-2xl grid-cols-[1fr_auto] gap-2 sm:flex">
+      {search.category && <input type="hidden" name="category" value={search.category} />}
+      <label className="sr-only" htmlFor="q">
+        Search
+      </label>
+      <input id="q" name="q" type="search" defaultValue={search.q} placeholder="Search by title or city" className={field} />
+      <label className="sr-only" htmlFor="when">
+        When
+      </label>
+      <select id="when" name="when" defaultValue={search.when ?? "all"} className={`${field} col-span-2 row-start-2 sm:w-44`}>
+        {WHEN.map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
         ))}
-      </div>
-    </div>
+      </select>
+      <button className="btn h-11 bg-hero-ink text-hero hover:opacity-90">Search</button>
+    </form>
   );
 }
 
-function CategoryLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
+async function CategoryNav({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
+  const search = await readSearch(searchParams);
+  const items: { key: EventCategory | null; label: string }[] = [
+    { key: null, label: "All events" },
+    ...categories.map((c) => ({ key: c, label: CATEGORY_LABELS[c] })),
+  ];
   return (
-    <Link
-      href={href}
-      aria-current={active ? "true" : undefined}
-      className={`-mb-px border-b-2 py-2 ${active ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink"}`}
-    >
-      {children}
-    </Link>
+    <nav aria-label="Categories" className="min-w-0 md:sticky md:top-6 md:self-start">
+      <ul className="-mx-4 flex gap-1 overflow-x-auto px-4 text-sm [scrollbar-width:none] md:mx-0 md:flex-col md:px-0">
+        {items.map(({ key, label }) => {
+          const active = (search.category ?? null) === key;
+          return (
+            <li key={label} className="shrink-0">
+              <Link
+                href={hrefWith(search, { category: key ?? undefined })}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center gap-2.5 rounded-md px-3 py-2 ${
+                  active ? "bg-surface font-medium text-ink shadow-[inset_0_0_0_1px_var(--line)]" : "text-muted hover:text-ink"
+                }`}
+              >
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                  style={{ background: key ? CATEGORY_COLOR[key] : "var(--ink)" }}
+                  aria-hidden="true"
+                />
+                {label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
 
-async function Results({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
+type AgendaEvent = {
+  slug: string;
+  title: string;
+  summary: string;
+  category: EventCategory;
+  startsAt: string;
+  isOnline: boolean;
+  city: string;
+  organizerName: string;
+  spotsLeft: number;
+  capacity: number;
+};
+
+async function Agenda({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
   const search = await readSearch(searchParams);
   const client = await serverApi();
   const category = categories.includes(search.category as EventCategory) ? search.category : undefined;
@@ -128,7 +156,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/events">["s
 
   if (events.length === 0) {
     return (
-      <div className="card mt-6 p-8 text-center">
+      <div className="card p-8 text-center">
         <p className="font-medium">Nothing matches that.</p>
         <p className="mt-1 text-sm text-muted">
           Try another search, or{" "}
@@ -141,20 +169,30 @@ async function Results({ searchParams }: { searchParams: PageProps<"/events">["s
     );
   }
 
+  const now = new Date();
   return (
     <>
-      {groupByWhen(events, new Date()).map((group) => (
-        <section key={group.label} className="mt-8 first:mt-6">
-          <h2 className="mb-3 text-sm font-medium text-muted">{group.label}</h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            {group.events.map((event) => (
-              <EventCard key={event.slug} event={event} />
-            ))}
-          </div>
-        </section>
-      ))}
+      <div className="space-y-8">
+        {groupByDay(events).map(({ day, items }) => (
+          <section key={day}>
+            <h2 className="mb-3 flex items-baseline gap-2">
+              <span className="font-semibold">{relativeDays(items[0].startsAt, now) ?? formatWeekdayDate(items[0].startsAt)}</span>
+              {relativeDays(items[0].startsAt, now) && (
+                <span className="text-sm text-muted">{formatWeekdayDate(items[0].startsAt)}</span>
+              )}
+            </h2>
+            <ul className="card divide-y divide-line overflow-hidden">
+              {items.map((event) => (
+                <li key={event.slug}>
+                  <AgendaRow event={event} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
       {(page > 1 || hasMore) && (
-        <div className="mt-6 flex justify-between text-sm">
+        <div className="mt-8 flex justify-between text-sm">
           {page > 1 ? (
             <Link className="btn-secondary" href={hrefWith(search, { page: String(page - 1) })}>
               Previous
@@ -173,30 +211,63 @@ async function Results({ searchParams }: { searchParams: PageProps<"/events">["s
   );
 }
 
-function ResultsSkeleton() {
+// One line of the agenda: the time on the left, then what and where.
+function AgendaRow({ event }: { event: AgendaEvent }) {
   return (
-    <div className="mt-6 grid gap-3 md:grid-cols-2" aria-hidden="true">
-      {Array.from({ length: 6 }, (_, i) => (
-        <EventCardSkeleton key={i} />
-      ))}
-    </div>
+    <Link
+      href={`/events/${event.slug}`}
+      className="group grid grid-cols-[4.5rem_1fr] gap-x-4 px-4 py-4 transition-colors hover:bg-surface-2 sm:grid-cols-[5.5rem_1fr_auto] sm:items-center sm:px-5"
+    >
+      <span className="pt-0.5 text-sm font-medium tabular-nums sm:pt-0">{formatTime(event.startsAt)}</span>
+      <div className="min-w-0">
+        <h3 className="leading-snug font-semibold group-hover:underline group-hover:underline-offset-2">{event.title}</h3>
+        <span className="mt-0.5 line-clamp-1 text-sm text-muted">{event.summary}</span>
+        <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[13px] text-muted">
+          <CategoryLabel category={event.category} />
+          <span>{event.isOnline ? "Online" : event.city}</span>
+          <span>{event.organizerName}</span>
+          <span className="sm:hidden">
+            <Availability spotsLeft={event.spotsLeft} capacity={event.capacity} />
+          </span>
+        </span>
+      </div>
+      <span className="hidden text-right text-[13px] whitespace-nowrap sm:block">
+        <Availability spotsLeft={event.spotsLeft} capacity={event.capacity} />
+      </span>
+    </Link>
   );
 }
 
-// "Next 7 days", then one group per month, so a long list has landmarks.
-function groupByWhen<T extends { startsAt: string }>(events: T[], now: Date) {
-  const weekEnd = manilaStartOfDay(now, 7);
-  const thisMonth = manilaDayKey(now).slice(0, 7);
-  const groups: { label: string; events: T[] }[] = [];
+function groupByDay<T extends { startsAt: string }>(events: T[]) {
+  const groups: { day: string; items: T[] }[] = [];
   for (const event of events) {
-    const start = new Date(event.startsAt);
-    let label: string;
-    if (start < weekEnd) label = "Next 7 days";
-    else if (manilaDayKey(start).slice(0, 7) === thisMonth) label = `Later in ${formatMonthName(start)}`;
-    else label = formatMonthName(start);
+    const day = manilaDayKey(event.startsAt);
     const last = groups.at(-1);
-    if (last?.label === label) last.events.push(event);
-    else groups.push({ label, events: [event] });
+    if (last?.day === day) last.items.push(event);
+    else groups.push({ day, items: [event] });
   }
   return groups;
+}
+
+function AgendaSkeleton() {
+  return (
+    <div className="space-y-8" aria-hidden="true">
+      {[0, 1].map((i) => (
+        <div key={i}>
+          <div className="mb-3 h-5 w-40 rounded bg-surface-2" />
+          <div className="card divide-y divide-line">
+            {[0, 1].map((j) => (
+              <div key={j} className="flex gap-4 p-4">
+                <div className="h-4 w-14 rounded bg-surface-2" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-2/3 rounded bg-surface-2" />
+                  <div className="h-3 w-full rounded bg-surface-2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
