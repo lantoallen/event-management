@@ -80,7 +80,7 @@ function TicketStub({ ticket: t }: { ticket: Ticket }) {
   return (
     <Link
       href={t.status === "confirmed" ? `/tickets/${t.ticketCode}` : `/events/${t.event.slug}`}
-      className={`group flex h-full overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-line-strong ${done ? "opacity-75" : ""}`}
+      className={`group lift flex h-full overflow-hidden rounded-xl border border-line bg-surface hover:border-line-strong ${done ? "opacity-75" : ""}`}
     >
       <div
         className="flex w-20 shrink-0 flex-col items-center justify-center border-l-4 py-4 text-center"

@@ -158,6 +158,17 @@ body {
   display: none;
 }
 
+/* Cards that open something rise a little under the pointer. */
+@utility lift {
+  transition: translate 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  @media (hover: hover) {
+    &:hover {
+      translate: 0 -2px;
+      box-shadow: 0 14px 24px -18px rgb(0 0 0 / 0.4);
+    }
+  }
+}
+
 /* The two halves of a paper ticket, with notches cut where they meet so the
    photo behind shows through them. */
 @utility notch-bottom {

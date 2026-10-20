@@ -187,7 +187,7 @@ async function Categories() {
           <li key={c}>
             <Link
               href={`/events?category=${c}`}
-              className="card flex h-full flex-col justify-between gap-6 p-4 transition-colors hover:border-line-strong"
+              className="card group lift flex h-full flex-col justify-between gap-6 p-4 hover:border-line-strong"
             >
               <span className="h-2.5 w-2.5 rounded-sm" style={{ background: CATEGORY_COLOR[c] }} aria-hidden="true" />
               <span>
