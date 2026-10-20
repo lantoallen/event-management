@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
+import { SearchShortcut } from "@/components/search-shortcut";
 import { SiteHeader } from "@/components/site-header";
 import { CurrentTabs, TabLinks } from "@/components/tab-bar";
 import { APP_NAME, SITE_URL } from "@/lib/config";
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* The header photo is the biggest thing on screen, so fetch it before the CSS asks. React moves this into <head>. */}
         <link rel="preload" href="/taal-lake.avif" as="image" type="image/avif" fetchPriority="high" />
         <SiteHeader />
+        <SearchShortcut />
         <main id="content" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-16 sm:px-6">
           {children}
         </main>
