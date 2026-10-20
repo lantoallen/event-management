@@ -6,6 +6,7 @@ import {
   manilaStartOfDay,
   manilaWeekday,
   relativeDays,
+  startsIn,
   toLocalInput,
 } from "./time";
 
@@ -40,5 +41,30 @@ describe("Manila time helpers", () => {
   it("only repeats the date in a range when the event runs past midnight", () => {
     expect(formatTimeRange("2026-10-20T11:00:00Z", "2026-10-20T13:00:00Z")).toBe("7:00 PM to 9:00 PM");
     expect(formatTimeRange("2026-10-20T14:00:00Z", "2026-10-20T17:00:00Z")).toMatch(/^10:00 PM to Oct 21, 1:00 AM$/);
+  });
+});
+
+const at = (local: string) => fromLocalInput(local);
+
+describe("startsIn", () => {
+  const start = at("2026-10-24T18:00");
+  const end = at("2026-10-24T21:00");
+
+  it("counts minutes, then hours, then days", () => {
+    expect(startsIn(start, end, at("2026-10-24T17:59"))).toBe("Starts in 1 minute");
+    expect(startsIn(start, end, at("2026-10-24T17:15"))).toBe("Starts in 45 minutes");
+    expect(startsIn(start, end, at("2026-10-24T09:00"))).toBe("Starts in 9 hours");
+    expect(startsIn(start, end, at("2026-10-23T20:00"))).toBe("Starts tomorrow");
+    expect(startsIn(start, end, at("2026-10-20T08:00"))).toBe("Starts in 4 days");
+    expect(startsIn(start, end, at("2026-10-01T08:00"))).toBe("Starts in 3 weeks");
+  });
+
+  it("uses hours across midnight when it's only a few hours away", () => {
+    expect(startsIn(at("2026-10-25T06:00"), at("2026-10-25T09:00"), at("2026-10-24T22:00"))).toBe("Starts in 8 hours");
+  });
+
+  it("says when it's on or over", () => {
+    expect(startsIn(start, end, at("2026-10-24T19:00"))).toBe("Happening now");
+    expect(startsIn(start, end, at("2026-10-24T21:00"))).toBe("Ended");
   });
 });

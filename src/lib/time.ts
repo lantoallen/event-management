@@ -62,6 +62,21 @@ export function manilaWeekday(d: Date) {
   return new Date(d.getTime() + OFFSET_MS).getUTCDay();
 }
 
+// The countdown on an event page: "Starts in 3 hours", "Happening now".
+export function startsIn(start: DateInput, end: DateInput, now = new Date()) {
+  const s = toDate(start);
+  if (now >= toDate(end)) return "Ended";
+  if (now >= s) return "Happening now";
+  const minutes = Math.ceil((s.getTime() - now.getTime()) / 60_000);
+  if (minutes < 60) return `Starts in ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 12 || manilaDayKey(s) === manilaDayKey(now)) return `Starts in ${hours} ${hours === 1 ? "hour" : "hours"}`;
+  const days = Math.round((manilaStartOfDay(s).getTime() - manilaStartOfDay(now).getTime()) / 86_400_000);
+  if (days === 1) return "Starts tomorrow";
+  if (days < 14) return `Starts in ${days} days`;
+  return `Starts in ${Math.floor(days / 7)} weeks`;
+}
+
 export function relativeDays(target: DateInput, now = new Date()) {
   const days = Math.round(
     (manilaStartOfDay(toDate(target)).getTime() - manilaStartOfDay(now).getTime()) / 86_400_000,
