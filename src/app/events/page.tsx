@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { BrowseSearch } from "@/components/browse-search";
 import { CategoryLabel } from "@/components/category-label";
 import { Availability } from "@/components/event-card";
 import { Column, FullBleed } from "@/components/full-bleed";
@@ -10,14 +11,6 @@ import { formatTime, formatWeekdayDate, manilaDayKey, relativeDays } from "@/lib
 import { categories, type EventCategory } from "@/server/db/schema";
 
 type Search = { q?: string; category?: string; when?: string; page?: string };
-
-const WHEN = [
-  ["all", "Any time"],
-  ["today", "Today"],
-  ["weekend", "This weekend"],
-  ["week", "Next 7 days"],
-  ["month", "Next 30 days"],
-] as const;
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
@@ -45,7 +38,7 @@ export default function BrowsePage({ searchParams }: PageProps<"/events">) {
         <Column className="pt-4 pb-8 md:pt-6 md:pb-10">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Upcoming events</h1>
           <Suspense fallback={<div className="mt-5 h-[96px] sm:h-11" />}>
-            <SearchBar searchParams={searchParams} />
+            <BrowseSearch />
           </Suspense>
         </Column>
       </FullBleed>
@@ -62,32 +55,6 @@ export default function BrowsePage({ searchParams }: PageProps<"/events">) {
         </div>
       </div>
     </>
-  );
-}
-
-async function SearchBar({ searchParams }: { searchParams: PageProps<"/events">["searchParams"] }) {
-  const search = await readSearch(searchParams);
-  const field = "h-11 w-full rounded-md border-0 bg-paper px-3 text-sm text-[#1d1b18] placeholder:text-[#8a847a] focus:outline-2 focus:outline-[#8fdcc0]";
-  return (
-    // Phones: search box and button on one row, the date filter under them. Wider: one row.
-    <form action="/events" role="search" data-browse-search className="mt-5 grid max-w-2xl grid-cols-[1fr_auto] gap-2 sm:flex">
-      {search.category && <input type="hidden" name="category" value={search.category} />}
-      <label className="sr-only" htmlFor="q">
-        Search
-      </label>
-      <input id="q" name="q" type="search" data-search defaultValue={search.q} placeholder="Search by title or city" className={field} />
-      <label className="sr-only" htmlFor="when">
-        When
-      </label>
-      <select id="when" name="when" defaultValue={search.when ?? "all"} className={`${field} col-span-2 row-start-2 sm:w-44`}>
-        {WHEN.map(([value, label]) => (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        ))}
-      </select>
-      <button className="btn h-11 bg-hero-ink text-hero hover:opacity-90">Search</button>
-    </form>
   );
 }
 
