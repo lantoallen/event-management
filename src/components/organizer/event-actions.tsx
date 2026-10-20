@@ -28,7 +28,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
     });
   }
 
-  const link = "text-muted hover:text-ink disabled:opacity-50";
+  const link = "text-hero-muted hover:text-hero-ink disabled:opacity-50";
   const live = status === "published" && !ended;
 
   return (
@@ -36,21 +36,21 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
       {(live || status === "draft") && (
         <div className="flex flex-wrap gap-2">
           {live && (
-            <Link href={`/organize/${eventId}/check-in`} className="btn-primary">
+            <Link href={`/organize/${eventId}/check-in`} className="btn bg-hero-ink text-hero hover:opacity-90">
               Check people in
             </Link>
           )}
           {status === "draft" && (
             <button
               type="button"
-              className="btn-primary"
+              className="btn bg-hero-ink text-hero hover:opacity-90"
               disabled={pending}
               onClick={() => run(null, () => unwrap(route.publish.$post(param)))}
             >
               Publish
             </button>
           )}
-          <Link href={`/organize/${eventId}/edit`} className="btn-secondary">
+          <Link href={`/organize/${eventId}/edit`} className="btn border border-white/25 text-hero-ink hover:bg-white/10">
             Edit
           </Link>
         </div>
@@ -82,7 +82,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
         {live && (
           <button
             type="button"
-            className="text-bad hover:underline disabled:opacity-50"
+            className="text-[#ffb3a8] hover:underline disabled:opacity-50"
             disabled={pending}
             onClick={() =>
               run("Cancel this event? Everyone registered or on the waitlist gets an email. This can't be undone.", () =>
@@ -96,7 +96,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
         {status === "draft" && (
           <button
             type="button"
-            className="text-bad hover:underline disabled:opacity-50"
+            className="text-[#ffb3a8] hover:underline disabled:opacity-50"
             disabled={pending}
             onClick={() =>
               run(
@@ -114,7 +114,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
         )}
       </div>
       {error && (
-        <p role="alert" className="text-sm text-bad">
+        <p role="alert" className="text-sm text-[#ffb3a8]">
           {error}
         </p>
       )}
