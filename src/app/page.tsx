@@ -128,9 +128,9 @@ async function NextUpTicket() {
   return (
     <Link
       href={`/events/${event.slug}`}
-      className="group relative mx-auto block w-full max-w-sm rounded-xl bg-paper text-[#1d1b18] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.6)] transition-transform md:-rotate-3 md:hover:rotate-0"
+      className="group relative mx-auto block w-full max-w-sm text-[#1d1b18] drop-shadow-[0_24px_24px_rgba(0,0,0,0.35)] transition-transform md:-rotate-3 md:hover:rotate-0"
     >
-      <div className="p-6">
+      <div className="notch-bottom rounded-t-xl bg-paper p-6">
         <p className="text-xs font-semibold tracking-[0.18em] text-[#0f6b55] uppercase">Next up</p>
         <p className="mt-2 text-xl leading-snug font-semibold text-balance">{event.title}</p>
         <p className="mt-3 text-sm text-[#5d574f]">
@@ -139,12 +139,8 @@ async function NextUpTicket() {
           {event.isOnline ? "Online" : event.city} · {event.organizerName}
         </p>
       </div>
-      {/* The tear line, with notches cut out of both edges. */}
-      <div className="relative border-t-2 border-dashed border-[#d9d3c7]">
-        <span className="absolute -top-3 -left-3 h-6 w-6 rounded-full bg-hero" />
-        <span className="absolute -top-3 -right-3 h-6 w-6 rounded-full bg-hero" />
-      </div>
-      <div className="flex items-center gap-5 p-6">
+      {/* Below the tear line. */}
+      <div className="notch-top flex items-center gap-5 rounded-b-xl border-t-2 border-dashed border-[#d9d3c7] bg-paper p-6">
         <div className="h-24 w-24 shrink-0" aria-hidden="true" dangerouslySetInnerHTML={{ __html: qr }} />
         <div className="text-sm">
           <p className="font-medium">

@@ -150,6 +150,20 @@ body {
   background: none;
 }
 
+/* The two halves of a paper ticket, with notches cut where they meet so the
+   photo behind shows through them. */
+@utility notch-bottom {
+  mask:
+    radial-gradient(12px at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(12px at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
+@utility notch-top {
+  mask:
+    radial-gradient(12px at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(12px at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+
 @layer components {
   .btn-primary {
     @apply btn bg-ink text-bg hover:opacity-90;
