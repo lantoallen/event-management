@@ -20,8 +20,9 @@
   /* The home page's hero panel: the app icon's green, with cream text. */
   --hero: #0f3d33;
   --hero-ink: #f4f1e8;
-  --hero-muted: #a9c2b8;
+  --hero-muted: #b6ccc2;
   --paper: #fffdf8;
+  --hero-veil: color-mix(in srgb, var(--hero) 80%, transparent);
   color-scheme: light;
 }
 
@@ -45,7 +46,7 @@
     --bad-soft: #351b19;
     --hero: #0d2e27;
     --hero-ink: #f4f1e8;
-    --hero-muted: #9db8ad;
+    --hero-muted: #b0c7bd;
     --paper: #fbf8f0;
     color-scheme: dark;
   }
@@ -109,6 +110,44 @@ body {
   height: 2rem;
   padding-inline: 0.75rem;
   font-size: 13px;
+}
+
+/* Taal Lake at sunrise (CC0, by PagesAndPathsPH on Wikimedia Commons) behind
+   the green header and bands, under a green veil that keeps the cream text
+   readable. Wider screens get a veil that is darkest on the left, where the
+   text is, and lets more of the photo through on the right (--veil-right sets
+   how much, for bands with text on that side). */
+@utility photo {
+  background-color: var(--hero);
+  background-image:
+    linear-gradient(to bottom, color-mix(in srgb, var(--hero) 88%, transparent) 3.5rem, var(--hero-veil)),
+    url("/taal-lake.avif");
+  background-size: cover;
+  background-position: 38% 72%;
+  @media (width >= 48rem) {
+    background-image:
+      linear-gradient(to bottom, color-mix(in srgb, var(--hero) 70%, transparent), transparent 8rem),
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--hero) 88%, transparent) 50%,
+        color-mix(in srgb, var(--hero) var(--veil-right, 45%), transparent)
+      ),
+      url("/taal-lake.avif");
+  }
+}
+
+/* A band that opens a page. The header slides over its top (below), so the
+   photo runs behind both as one picture. */
+@utility photo-band {
+  padding-top: 3.5rem;
+}
+
+:root:has(.photo-band) .site-header {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  z-index: 20;
+  background: none;
 }
 
 @layer components {

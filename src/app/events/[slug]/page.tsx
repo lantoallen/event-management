@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PageProps<"/events/[slug]">):
 
 export default function EventPage({ params }: PageProps<"/events/[slug]">) {
   return (
-    <Suspense fallback={<FullBleed className="-mt-8 h-56 bg-hero" />}>
+    <Suspense fallback={<FullBleed className="photo photo-band -mt-8 h-70" />}>
       <EventDetail params={params} />
     </Suspense>
   );
@@ -55,7 +55,7 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
   return (
     <>
       {/* Joined to the green header. The ticket panel below overlaps its bottom edge. */}
-      <FullBleed className="-mt-8 bg-hero text-hero-ink">
+      <FullBleed className="photo photo-band -mt-8 text-hero-ink">
         <Column className="pt-4 pb-8 md:pb-24">
           <Link href="/events" className="text-sm text-hero-muted hover:text-hero-ink">
             ← All events

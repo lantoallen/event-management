@@ -17,8 +17,7 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
         <OldBrowseLinks searchParams={searchParams} />
       </Suspense>
 
-      {/* Joined to the green header: one band from the top of the page. */}
-      <FullBleed className="-mt-8 bg-hero text-hero-ink">
+      <FullBleed className="photo photo-band -mt-8 text-hero-ink">
         <Column className="grid items-center gap-10 pt-6 pb-14 md:grid-cols-[1.1fr_1fr] md:pt-10 md:pb-20">
           <div>
             <h1 className="text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl">
