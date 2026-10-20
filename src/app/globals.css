@@ -98,8 +98,11 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
-  transition: background-color 120ms, opacity 120ms;
+  transition: background-color 120ms, opacity 120ms, transform 120ms;
   cursor: pointer;
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
   &:disabled {
     cursor: not-allowed;
     opacity: 0.5;
