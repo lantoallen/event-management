@@ -6,7 +6,7 @@ The live link runs in demo mode: the people and events are made up, the data res
 
 **Live demo:** https://event-management-two-alpha.vercel.app
 
-![Browsing upcoming events](docs/browse.jpg)
+![The home page: a ticket for the next event and what's on this week](docs/home.jpg)
 
 | A ticket with its QR code | The organizer dashboard |
 | --- | --- |
