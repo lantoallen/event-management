@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { manilaDayKey } from "@/lib/time";
 import { seed } from "../seed";
 import { createHarness, type Harness } from "./harness";
 
@@ -44,7 +45,26 @@ describe("sample data", () => {
     expect((await h.request("GET", "/api/events?q=%25")).json.events).toHaveLength(0);
   });
 
+  it("counts events per day for the day picker, matching the day filter", async () => {
+    const { json } = await h.request("GET", "/api/events/days");
+    expect(json.days).toHaveLength(14);
+    expect(json.days[0].day).toBe(manilaDayKey(h.now));
+    const busy = json.days.filter((d: { count: number }) => d.count > 0);
+    expect(busy.length).toBeGreaterThan(3);
+    for (const { day, count } of busy) {
+      const list = (await h.request("GET", `/api/events?day=${day}`)).json.events;
+      expect(list).toHaveLength(count);
+      expect(list.every((e: { startsAt: string }) => manilaDayKey(e.startsAt) === day)).toBe(true);
+    }
+    // The counts follow the category filter too.
+    const food = (await h.request("GET", "/api/events/days?category=food")).json.days;
+    const foodTotal = food.reduce((n: number, d: { count: number }) => n + d.count, 0);
+    expect(foodTotal).toBeLessThan(busy.reduce((n: number, d: { count: number }) => n + d.count, 0));
+  });
+
   it("ignores filter values it doesn't know instead of failing", async () => {
+    const all = (await h.request("GET", "/api/events")).json.events;
+    expect((await h.request("GET", "/api/events?day=2026-02-31")).json.events).toEqual(all);
     expect((await h.request("GET", "/api/events?category=nope&when=someday")).status).toBe(200);
   });
 
