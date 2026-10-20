@@ -128,7 +128,7 @@ async function NextUpTicket() {
   return (
     <Link
       href={`/events/${event.slug}`}
-      className="group relative mx-auto block w-full max-w-sm text-[#1d1b18] drop-shadow-[0_24px_24px_rgba(0,0,0,0.35)] transition-transform md:-rotate-3 md:hover:rotate-0"
+      className="group relative mx-auto block w-full max-w-sm animate-[rise_600ms_ease-out_both] text-[#1d1b18] drop-shadow-[0_24px_24px_rgba(0,0,0,0.35)] transition-transform md:-rotate-3 md:hover:rotate-0"
     >
       <div className="notch-bottom rounded-t-xl bg-paper p-6">
         <p className="text-xs font-semibold tracking-[0.18em] text-[#0f6b55] uppercase">Next up</p>

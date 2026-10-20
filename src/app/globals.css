@@ -169,6 +169,14 @@ body {
   }
 }
 
+/* Slides something up into place as it appears. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 1rem;
+  }
+}
+
 /* The two halves of a paper ticket, with notches cut where they meet so the
    photo behind shows through them. */
 @utility notch-bottom {
