@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { PageBand } from "@/components/page-band";
 import { EventStatusBadge } from "@/components/organizer/event-status";
 import { load, serverApi } from "@/lib/server-api";
 import { formatTime, formatWeekdayDate } from "@/lib/time";
@@ -10,13 +11,12 @@ export const metadata: Metadata = { title: "Organize" };
 export default function OrganizePage() {
   return (
     <>
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Your events</h1>
-        <Link href="/organize/new" className="btn-primary">
+      <PageBand title="Your events">
+        <Link href="/organize/new" className="btn bg-hero-ink text-hero hover:opacity-90">
           New event
         </Link>
-      </div>
-      <Suspense fallback={<div className="card mt-6 h-64 animate-pulse" />}>
+      </PageBand>
+      <Suspense fallback={<div className="card h-64 animate-pulse" />}>
         <EventList />
       </Suspense>
     </>
@@ -29,7 +29,7 @@ async function EventList() {
 
   if (events.length === 0) {
     return (
-      <div className="card mt-6 p-8 text-center">
+      <div className="card p-8 text-center">
         <p className="font-medium">You haven&apos;t made any events yet.</p>
         <p className="mt-1 text-sm text-muted">
           Create one and it shows up here with its sign-ups, waitlist, and check-ins. Or log in as the sample
@@ -40,7 +40,7 @@ async function EventList() {
   }
 
   return (
-    <div className="card mt-6 overflow-x-auto">
+    <div className="card overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-line text-left text-[13px] text-muted">

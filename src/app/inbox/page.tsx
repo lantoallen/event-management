@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { PageBand } from "@/components/page-band";
 import { Badge } from "@/components/badges";
 import { DEMO_MODE } from "@/lib/config";
 import { load, serverApi } from "@/lib/server-api";
@@ -10,8 +11,8 @@ export const metadata: Metadata = { title: "Inbox" };
 export default function InboxPage() {
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Inbox</h1>
-      <p className="mt-1 max-w-2xl text-sm text-muted">
+      <PageBand title="Inbox" />
+      <p className="max-w-2xl text-sm text-muted">
         A copy of every email we&apos;ve sent you: confirmations, waitlist updates, reminders, and messages from
         organizers.{DEMO_MODE && " On this demo they only land here, not in a real inbox."}
       </p>

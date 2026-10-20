@@ -187,6 +187,7 @@ export async function listMyTickets(db: Db, userId: string) {
       event: {
         slug: event.slug,
         title: event.title,
+        category: event.category,
         status: event.status,
         startsAt: event.startsAt,
         endsAt: event.endsAt,

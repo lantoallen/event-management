@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { AttendeesTable } from "@/components/organizer/attendees-table";
 import { EventActions } from "@/components/organizer/event-actions";
 import { EventStatusBadge } from "@/components/organizer/event-status";
+import { Column, FullBleed } from "@/components/full-bleed";
 import { MessagePanel } from "@/components/organizer/message-panel";
 import { SignupChart } from "@/components/organizer/signup-chart";
 import { load, serverApi } from "@/lib/server-api";
@@ -13,14 +14,9 @@ export const metadata: Metadata = { title: "Manage event" };
 
 export default function ManageEventPage({ params }: PageProps<"/organize/[id]">) {
   return (
-    <>
-      <Link href="/organize" className="text-sm text-muted hover:text-ink">
-        ← Your events
-      </Link>
-      <Suspense fallback={<div className="mt-4 h-[600px] animate-pulse rounded-lg bg-surface-2" />}>
-        <Dashboard params={params} />
-      </Suspense>
-    </>
+    <Suspense fallback={<FullBleed className="-mt-8 h-56 bg-hero" />}>
+      <Dashboard params={params} />
+    </Suspense>
   );
 }
 
@@ -38,21 +34,29 @@ async function Dashboard({ params }: { params: PageProps<"/organize/[id]">["para
   const ended = new Date(event.endsAt) <= new Date();
 
   return (
-    <div className="mt-4 space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight text-balance">{event.title}</h1>
-          <p className="mt-1 text-sm text-muted">
-            <EventStatusBadge status={event.status} endsAt={event.endsAt} />
-            {event.visibility === "unlisted" && " (unlisted)"} · {formatFullDate(event.startsAt)},{" "}
-            {formatTimeRange(event.startsAt, event.endsAt)} · {event.isOnline ? "Online" : `${event.location}, ${event.city}`}
-          </p>
-        </div>
-        <EventActions eventId={event.id} slug={event.slug} status={event.status} ended={ended} />
-      </div>
+    <div className="space-y-6">
+      {/* The same green banner as the event page; the stats strip overlaps its edge. */}
+      <FullBleed className="-mt-8 bg-hero text-hero-ink">
+        <Column className="pt-4 pb-20">
+          <Link href="/organize" className="text-sm text-hero-muted hover:text-hero-ink">
+            ← Your events
+          </Link>
+          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-3xl font-semibold tracking-tight text-balance">{event.title}</h1>
+              <p className="mt-1 text-sm text-hero-muted">
+                <EventStatusBadge status={event.status} endsAt={event.endsAt} onDark />
+                {event.visibility === "unlisted" && " (unlisted)"} · {formatFullDate(event.startsAt)},{" "}
+                {formatTimeRange(event.startsAt, event.endsAt)} · {event.isOnline ? "Online" : `${event.location}, ${event.city}`}
+              </p>
+            </div>
+            <EventActions eventId={event.id} slug={event.slug} status={event.status} ended={ended} />
+          </div>
+        </Column>
+      </FullBleed>
 
       {/* One strip with hairline dividers: the gap shows the border color behind the cells. */}
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-4">
+      <dl className="relative -mt-20 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line shadow-[0_20px_40px_-24px_rgba(0,0,0,0.35)] md:grid-cols-4">
         <Stat label="Going" value={stats.confirmed} suffix={`/ ${stats.capacity}`} />
         <Stat
           label="Checked in"
