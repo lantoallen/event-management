@@ -35,6 +35,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        {/* The header photo is the biggest thing on screen, so fetch it before the CSS asks. React moves this into <head>. */}
+        <link rel="preload" href="/taal-lake.avif" as="image" type="image/avif" fetchPriority="high" />
         <SiteHeader />
         <main id="content" className="mx-auto w-full max-w-5xl flex-1 px-4 pt-8 pb-16 sm:px-6">
           {children}

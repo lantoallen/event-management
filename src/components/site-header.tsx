@@ -7,8 +7,8 @@ import { CurrentNav, NavLinks } from "./nav";
 
 export function SiteHeader() {
   return (
-    // The brand green, the same as the home page's band, so the two join up.
-    <header className="bg-hero text-hero-ink">
+    // On pages that open with a photo band, this sits on top of the band.
+    <header className="site-header photo text-hero-ink">
       <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2 text-[17px] font-semibold tracking-tight">
           <TicketMark />

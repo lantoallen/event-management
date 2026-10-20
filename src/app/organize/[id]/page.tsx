@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Manage event" };
 
 export default function ManageEventPage({ params }: PageProps<"/organize/[id]">) {
   return (
-    <Suspense fallback={<FullBleed className="-mt-8 h-56 bg-hero" />}>
+    <Suspense fallback={<FullBleed className="photo photo-band -mt-8 h-70" />}>
       <Dashboard params={params} />
     </Suspense>
   );
@@ -36,7 +36,7 @@ async function Dashboard({ params }: { params: PageProps<"/organize/[id]">["para
   return (
     <div className="space-y-6">
       {/* The same green banner as the event page; the stats strip overlaps its edge. */}
-      <FullBleed className="-mt-8 bg-hero text-hero-ink">
+      <FullBleed className="photo photo-band -mt-8 text-hero-ink [--veil-right:78%]">
         <Column className="pt-4 pb-20">
           <Link href="/organize" className="text-sm text-hero-muted hover:text-hero-ink">
             ← Your events

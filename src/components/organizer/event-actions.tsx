@@ -28,7 +28,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
     });
   }
 
-  const link = "text-hero-muted hover:text-hero-ink disabled:opacity-50";
+  const link = "text-hero-ink underline-offset-2 hover:underline disabled:opacity-50";
   const live = status === "published" && !ended;
 
   return (
@@ -82,7 +82,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
         {live && (
           <button
             type="button"
-            className="text-[#ffb3a8] hover:underline disabled:opacity-50"
+            className="text-[#ffd6cf] hover:underline disabled:opacity-50"
             disabled={pending}
             onClick={() =>
               run("Cancel this event? Everyone registered or on the waitlist gets an email. This can't be undone.", () =>
@@ -96,7 +96,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
         {status === "draft" && (
           <button
             type="button"
-            className="text-[#ffb3a8] hover:underline disabled:opacity-50"
+            className="text-[#ffd6cf] hover:underline disabled:opacity-50"
             disabled={pending}
             onClick={() =>
               run(
@@ -114,7 +114,7 @@ export function EventActions({ eventId, slug, status, ended }: Props) {
         )}
       </div>
       {error && (
-        <p role="alert" className="text-sm text-[#ffb3a8]">
+        <p role="alert" className="text-sm text-[#ffd6cf]">
           {error}
         </p>
       )}

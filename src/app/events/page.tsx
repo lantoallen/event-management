@@ -41,7 +41,7 @@ export default function BrowsePage({ searchParams }: PageProps<"/events">) {
   return (
     <>
       {/* The search sits in a green band joined to the header. */}
-      <FullBleed className="-mt-8 bg-hero text-hero-ink">
+      <FullBleed className="photo photo-band -mt-8 text-hero-ink">
         <Column className="pt-4 pb-8 md:pt-6 md:pb-10">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Upcoming events</h1>
           <Suspense fallback={<div className="mt-5 h-[96px] sm:h-11" />}>
