@@ -98,8 +98,11 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
-  transition: background-color 120ms, opacity 120ms;
+  transition: background-color 120ms, opacity 120ms, transform 120ms;
   cursor: pointer;
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
   &:disabled {
     cursor: not-allowed;
     opacity: 0.5;
@@ -153,6 +156,37 @@ body {
 /* Browse has its own search box, so the header's steps aside there. */
 :root:has([data-browse-search]) .header-search {
   display: none;
+}
+
+/* Cards that open something rise a little under the pointer. */
+@utility lift {
+  transition: translate 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  @media (hover: hover) {
+    &:hover {
+      translate: 0 -2px;
+      box-shadow: 0 14px 24px -18px rgb(0 0 0 / 0.4);
+    }
+  }
+}
+
+/* Slides something up into place as it appears. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 1rem;
+  }
+}
+
+/* Movement is a nice extra, never a requirement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* The two halves of a paper ticket, with notches cut where they meet so the

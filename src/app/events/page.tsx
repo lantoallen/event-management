@@ -80,7 +80,9 @@ async function DayPicker({ searchParams }: { searchParams: PageProps<"/events">[
   const client = await serverApi();
   const { days } = await load(client.api.events.days.$get({ query: { q: search.q, category: validCategory(search.category) } }));
   return (
-    <nav aria-label="Pick a day" className="-mx-4 mt-6 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
+    // `relative` keeps the tiles' screen-reader text inside the scrolling strip;
+    // without it that text pokes out past the screen edge and phones zoom out.
+    <nav aria-label="Pick a day" className="relative -mx-4 mt-6 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
       <ul className="flex gap-2">
         {days.map(({ day, count }, i) => {
           const date = fromLocalInput(`${day}T12:00`);
@@ -108,7 +110,7 @@ async function DayPicker({ searchParams }: { searchParams: PageProps<"/events">[
           return (
             <li key={day}>
               {count === 0 && !selected ? (
-                <span className={`${tile} border-white/10 text-hero-muted`}>{body}</span>
+                <span className={`${tile} border-transparent bg-black/25 text-hero-muted`}>{body}</span>
               ) : (
                 <Link
                   href={hrefWith(search, { day: selected ? undefined : day, when: undefined })}

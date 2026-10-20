@@ -61,7 +61,7 @@ export function TabLinks({ pathname }: { pathname: string | null }) {
         key={href}
         href={href}
         aria-current={active ? "page" : undefined}
-        className={`relative flex h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] ${active ? "font-medium text-accent" : "text-muted"}`}
+        className={`relative flex h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] active:bg-surface-2 ${active ? "font-medium text-accent" : "text-muted"}`}
       >
         {active && <span className="absolute inset-x-5 top-0 h-0.5 rounded-b bg-accent" />}
         <svg

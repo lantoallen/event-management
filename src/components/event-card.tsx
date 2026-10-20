@@ -39,7 +39,7 @@ export function EventCard({ event }: { event: EventCardData }) {
   return (
     <Link
       href={`/events/${event.slug}`}
-      className="card group flex gap-4 p-4 transition-colors hover:border-line-strong"
+      className="card group lift flex gap-4 p-4 hover:border-line-strong"
     >
       <DateBlock date={event.startsAt} />
       <div className="min-w-0 flex-1">

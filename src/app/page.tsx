@@ -128,7 +128,7 @@ async function NextUpTicket() {
   return (
     <Link
       href={`/events/${event.slug}`}
-      className="group relative mx-auto block w-full max-w-sm text-[#1d1b18] drop-shadow-[0_24px_24px_rgba(0,0,0,0.35)] transition-transform md:-rotate-3 md:hover:rotate-0"
+      className="group relative mx-auto block w-full max-w-sm animate-[rise_600ms_ease-out_both] text-[#1d1b18] drop-shadow-[0_24px_24px_rgba(0,0,0,0.35)] transition-transform md:-rotate-3 md:hover:rotate-0"
     >
       <div className="notch-bottom rounded-t-xl bg-paper p-6">
         <p className="text-xs font-semibold tracking-[0.18em] text-[#0f6b55] uppercase">Next up</p>
@@ -187,9 +187,13 @@ async function Categories() {
           <li key={c}>
             <Link
               href={`/events?category=${c}`}
-              className="card flex h-full flex-col justify-between gap-6 p-4 transition-colors hover:border-line-strong"
+              className="card group lift flex h-full flex-col justify-between gap-6 p-4 hover:border-line-strong"
             >
-              <span className="h-2.5 w-2.5 rounded-sm" style={{ background: CATEGORY_COLOR[c] }} aria-hidden="true" />
+              <span
+                className="h-2.5 w-2.5 rounded-sm transition-[width] duration-200 group-hover:w-8"
+                style={{ background: CATEGORY_COLOR[c] }}
+                aria-hidden="true"
+              />
               <span>
                 <span className="block font-medium">{CATEGORY_LABELS[c]}</span>
                 <span className="text-[13px] text-muted">
