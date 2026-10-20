@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col font-sans">
+      <body className="flex min-h-full flex-col overflow-x-clip font-sans">
         <a
           href="#content"
           className="sr-only rounded-md bg-ink px-3 py-2 text-sm text-bg focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50"

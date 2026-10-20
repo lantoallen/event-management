@@ -10,7 +10,7 @@ export function LogoutButton() {
   return (
     <button
       type="button"
-      className="btn-secondary btn-sm"
+      className="btn btn-sm border border-white/25 text-hero-ink hover:bg-white/10"
       disabled={pending}
       onClick={() =>
         start(async () => {

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import QRCode from "qrcode";
 import { Suspense } from "react";
 import { EventCard } from "@/components/event-card";
+import { Column, FullBleed } from "@/components/full-bleed";
 import { CATEGORY_COLOR, CATEGORY_LABELS } from "@/lib/categories";
 import { SITE_URL } from "@/lib/config";
 import { load, serverApi } from "@/lib/server-api";
@@ -16,8 +17,9 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
         <OldBrowseLinks searchParams={searchParams} />
       </Suspense>
 
-      <section className="-mt-2 overflow-hidden rounded-2xl bg-hero text-hero-ink">
-        <div className="grid items-center gap-10 px-6 py-10 sm:px-10 md:grid-cols-[1.1fr_1fr] md:py-14">
+      {/* Joined to the green header: one band from the top of the page. */}
+      <FullBleed className="-mt-8 bg-hero text-hero-ink">
+        <Column className="grid items-center gap-10 pt-6 pb-14 md:grid-cols-[1.1fr_1fr] md:pt-10 md:pb-20">
           <div>
             <h1 className="text-4xl leading-[1.05] font-semibold tracking-tight text-balance sm:text-5xl">
               What&apos;s on around Batangas
@@ -37,8 +39,8 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
           <Suspense fallback={<div className="mx-auto h-[360px] w-full max-w-sm rounded-xl bg-white/5" />}>
             <NextUpTicket />
           </Suspense>
-        </div>
-      </section>
+        </Column>
+      </FullBleed>
 
       <section className="mt-14">
         <div className="mb-4 flex items-baseline justify-between gap-4">
