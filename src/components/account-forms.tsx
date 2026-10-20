@@ -41,7 +41,7 @@ export function AccountForms({ user }: { user: User }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
-    <div className="mt-6 space-y-6">
+    <div className="space-y-6">
       <section className="card p-5">
         <h2 className="font-medium">Profile</h2>
         <form
