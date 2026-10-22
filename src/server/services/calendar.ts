@@ -1,3 +1,4 @@
+import { APP_NAME } from "@/lib/config";
 import { formatTicketCode } from "@/lib/tickets";
 
 type CalendarEvent = {
@@ -36,7 +37,7 @@ export function toIcs(event: CalendarEvent, now: Date) {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Events demo//EN",
+    `PRODID:-//${APP_NAME}//EN`,
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",

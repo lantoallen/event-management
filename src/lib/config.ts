@@ -1,5 +1,6 @@
-// Working name. Change it here and it updates everywhere.
-export const APP_NAME = "Events";
+// Filipino for "let's go", what you say when you invite someone along.
+// Change it here and it updates everywhere.
+export const APP_NAME = "Tara";
 
 export const SITE_URL =
   process.env.APP_URL ??
