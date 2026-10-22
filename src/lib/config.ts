@@ -1,5 +1,6 @@
-// Working name. Change it here and it updates everywhere.
-export const APP_NAME = "Events";
+// Filipino for "let's go", what you say when you invite someone along.
+// Change it here and it updates everywhere.
+export const APP_NAME = "Tara";
 
 export const SITE_URL =
   process.env.APP_URL ??
@@ -16,4 +17,4 @@ export const DEMO_MODE = process.env.DEMO_MODE
   : !process.env.DATABASE_URL && !process.env.VERCEL;
 
 export const AUTHOR = { name: "Allen Lanto", url: "https://lantoallen.vercel.app" };
-export const REPO_URL = "https://github.com/lantoallen/event-management";
+export const REPO_URL = "https://github.com/lantoallen/tara";
