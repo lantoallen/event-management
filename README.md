@@ -1,6 +1,6 @@
-# Events
+# Tara
 
-An event registration app for free events: meetups, workshops, runs, school org events. People browse events, register, and get a QR ticket. Organizers create events, see who's coming, message attendees, and check people in at the door by scanning tickets with their phone.
+Tara is Filipino for "let's go", what you say when you invite someone along. It's an event registration app for free events: meetups, workshops, runs, school org events. People browse events, register, and get a QR ticket. Organizers create events, see who's coming, message attendees, and check people in at the door by scanning tickets with their phone.
 
 The live link runs in demo mode: the people and events are made up, the data resets every day, and you can sign in as a sample attendee or organizer from the login page. With demo mode off, the same code runs as a normal app with real accounts (see [Using it for real](#using-it-for-real)).
 
