@@ -9,7 +9,10 @@ export function CapacityMeter({ taken, capacity, waitlisted }: { taken: number; 
         {waitlisted > 0 && <span className="text-warn">{waitlisted} waiting</span>}
       </div>
       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2">
-        <div className={`h-full rounded-full ${pct >= 100 ? "bg-warn" : "bg-accent"}`} style={{ width: `${pct}%` }} />
+        <div
+          className={`h-full animate-[fill_900ms_ease-out_both] rounded-full ${pct >= 100 ? "bg-warn" : "bg-accent"}`}
+          style={{ width: `${pct}%` }}
+        />
       </div>
     </div>
   );

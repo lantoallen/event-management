@@ -187,6 +187,13 @@ body {
   }
 }
 
+/* A bar filling up from empty to its width. */
+@keyframes fill {
+  from {
+    width: 0;
+  }
+}
+
 /* Someone stepping into the back of the line. */
 @keyframes join {
   from {
