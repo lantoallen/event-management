@@ -26,6 +26,8 @@ export function CheckInDesk({ eventId, initial, initialRecent }: Props) {
   const [counts, setCounts] = useState(initial);
   const [recent, setRecent] = useState(initialRecent);
   const [result, setResult] = useState<Result | null>(null);
+  // Bumped on every scan so the stamp comes down again, even for the same ticket.
+  const [scanCount, setScanCount] = useState(0);
   const [busy, setBusy] = useState(false);
   const [code, setCode] = useState("");
   const [camera, setCamera] = useState<"off" | "starting" | "on" | "unavailable">("off");
@@ -49,12 +51,14 @@ export function CheckInDesk({ eventId, initial, initialRecent }: Props) {
         const data = await unwrap(route["check-ins"].$post({ param: { id: eventId }, json: { code: raw } }));
         const entry = { name: data.attendee.name, code: data.attendee.ticketCode, at: data.checkedInAt };
         setResult(data.result === "checked_in" ? { kind: "ok", ...entry } : { kind: "already", ...entry });
+        setScanCount((n) => n + 1);
         setCounts({ checkedIn: data.checkedIn, confirmed: data.confirmed });
         if (data.result === "checked_in") navigator.vibrate?.(60);
         setCode("");
         await refreshRecent();
       } catch (err) {
         setResult({ kind: "error", message: errorMessage(err) });
+        setScanCount((n) => n + 1);
         if (err instanceof ApiError) navigator.vibrate?.([40, 60, 40]);
       } finally {
         busyRef.current = false;
@@ -119,7 +123,10 @@ export function CheckInDesk({ eventId, initial, initialRecent }: Props) {
         <div className="flex items-baseline justify-between">
           <p className="text-sm text-muted">Checked in</p>
           <p className="text-lg font-semibold tabular-nums" aria-live="polite">
-            {counts.checkedIn} <span className="text-sm font-normal text-muted">of {counts.confirmed}</span>
+            <span key={counts.checkedIn} className="inline-block animate-[bump_300ms_ease-out]">
+              {counts.checkedIn}
+            </span>{" "}
+            <span className="text-sm font-normal text-muted">of {counts.confirmed}</span>
           </p>
         </div>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
@@ -173,7 +180,7 @@ export function CheckInDesk({ eventId, initial, initialRecent }: Props) {
         </form>
       </div>
 
-      <div aria-live="assertive">{result && <ResultCard result={result} onUndo={undo} />}</div>
+      <div aria-live="assertive">{result && <ResultCard key={scanCount} result={result} onUndo={undo} />}</div>
 
       <section>
         <h2 className="mb-2 text-sm font-medium text-muted">Latest check-ins</h2>
@@ -197,17 +204,21 @@ export function CheckInDesk({ eventId, initial, initialRecent }: Props) {
 function ResultCard({ result, onUndo }: { result: Result; onUndo: (code: string) => void }) {
   if (result.kind === "error") {
     return (
-      <div role="alert" className="rounded-lg border border-bad/30 bg-bad-soft p-4">
-        <p className="font-medium text-bad">Not checked in</p>
-        <p className="mt-0.5 text-sm">{result.message}</p>
+      <div role="alert" className="relative animate-[shake_400ms_ease-in-out] overflow-hidden rounded-lg border border-bad/30 bg-bad-soft p-4">
+        <div className="pr-32">
+          <p className="font-medium text-bad">Not checked in</p>
+          <p className="mt-0.5 text-sm">{result.message}</p>
+        </div>
+        <Stamp tone="bad">No entry</Stamp>
       </div>
     );
   }
   const ok = result.kind === "ok";
   return (
-    <div className={`rounded-lg border p-4 ${ok ? "border-ok/30 bg-ok-soft" : "border-warn/30 bg-warn-soft"}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
+    <div className={`relative overflow-hidden rounded-lg border p-4 ${ok ? "border-ok/30 bg-ok-soft" : "border-warn/30 bg-warn-soft"}`}>
+      <Stamp tone={ok ? "ok" : "warn"}>{ok ? "Admitted" : "Already in"}</Stamp>
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="pr-28">
           <p className={`font-medium ${ok ? "text-ok" : "text-warn"}`}>
             {ok ? "Checked in" : `Already checked in at ${formatTime(result.at)}`}
           </p>
@@ -221,5 +232,18 @@ function ResultCard({ result, onUndo }: { result: Result; onUndo: (code: string)
         )}
       </div>
     </div>
+  );
+}
+
+// A rubber stamp that thumps down on the result, like the ones at a real door.
+function Stamp({ tone, children }: { tone: "ok" | "warn" | "bad"; children: React.ReactNode }) {
+  const ink = { ok: "border-ok text-ok", warn: "border-warn text-warn", bad: "border-bad text-bad" }[tone];
+  return (
+    <span
+      aria-hidden="true"
+      className={`pointer-events-none absolute right-4 bottom-3 -rotate-12 animate-[stamp_450ms_cubic-bezier(0.2,0.9,0.3,1.3)_both] rounded-md border-[3px] px-2 py-0.5 font-mono text-[13px] font-bold tracking-[0.18em] uppercase ${ink}`}
+    >
+      {children}
+    </span>
   );
 }
