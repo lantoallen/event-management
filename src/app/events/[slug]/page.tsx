@@ -10,7 +10,16 @@ import { Column, FullBleed } from "@/components/full-bleed";
 import { CATEGORY_COLOR } from "@/lib/categories";
 import { mapsUrl } from "@/lib/maps";
 import { currentUser, load, serverApi } from "@/lib/server-api";
-import { formatDay, formatFullDate, formatMonth, formatTimeRange, formatWeekday, startsIn } from "@/lib/time";
+import {
+  formatDay,
+  formatFullDate,
+  formatMonth,
+  formatTime,
+  formatTimeRange,
+  formatWeekday,
+  formatWeekdayDate,
+  startsIn,
+} from "@/lib/time";
 import type { EventCategory } from "@/server/db/schema";
 
 export async function generateMetadata({ params }: PageProps<"/events/[slug]">): Promise<Metadata> {
@@ -127,6 +136,8 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
           <CapacityMeter taken={event.confirmed} capacity={event.capacity} waitlisted={event.waitlisted} />
           <RegisterPanel
             eventId={event.id}
+            title={event.title}
+            when={`${formatWeekdayDate(event.startsAt)}, ${formatTime(event.startsAt)}`}
             slug={event.slug}
             eventStatus={event.status}
             started={started}
