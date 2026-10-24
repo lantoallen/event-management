@@ -189,6 +189,26 @@ body {
   }
 }
 
+/* A ticket in the home page's pile. --place is 0 for the one on top; the
+   ones behind sit a little lower, further right, and turned. */
+@utility deck-card {
+  grid-area: 1 / 1;
+  --tilt: 0deg;
+  translate: calc(var(--place) * 10px) calc(var(--place) * 12px);
+  rotate: calc(var(--tilt) + var(--place) * 3deg);
+  scale: calc(1 - var(--place) * 0.04);
+  transition:
+    translate 300ms ease,
+    rotate 300ms ease,
+    scale 300ms ease;
+  @media (width >= 48rem) {
+    --tilt: -3deg;
+    &[data-top]:hover {
+      rotate: 0deg;
+    }
+  }
+}
+
 /* The two halves of a paper ticket, with notches cut where they meet so the
    photo behind shows through them. */
 @utility notch-bottom {

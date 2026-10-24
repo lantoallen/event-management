@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import { Suspense } from "react";
 import { EventCard } from "@/components/event-card";
 import { Column, FullBleed } from "@/components/full-bleed";
+import { TicketDeck, type DeckTicket } from "@/components/ticket-deck";
 import { CATEGORY_COLOR, CATEGORY_LABELS } from "@/lib/categories";
 import { SITE_URL } from "@/lib/config";
 import { load, serverApi } from "@/lib/server-api";
@@ -35,8 +36,8 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
               </Link>
             </div>
           </div>
-          <Suspense fallback={<div className="mx-auto h-[360px] w-full max-w-sm rounded-xl bg-white/5" />}>
-            <NextUpTicket />
+          <Suspense fallback={<div className="mx-auto h-[420px] w-full max-w-sm" />}>
+            <NextUpTickets />
           </Suspense>
         </Column>
       </FullBleed>
@@ -110,47 +111,30 @@ async function HeroCount() {
   );
 }
 
-// The next event with room left, drawn as a paper ticket. The QR code works:
-// it opens the event page.
-async function NextUpTicket() {
+// The next few events with room left, as a pile of paper tickets.
+async function NextUpTickets() {
   const client = await serverApi();
   const { events } = await load(client.api.events.$get({ query: {} }));
-  const event = events.find((e) => e.spotsLeft > 0) ?? events[0];
-  if (!event) return null;
-  const url = `${SITE_URL}/events/${event.slug}`;
-  const qr = await QRCode.toString(url, {
-    type: "svg",
-    margin: 0,
-    errorCorrectionLevel: "M",
-    color: { dark: "#1d1b18", light: "#00000000" },
-  });
-
-  return (
-    <Link
-      href={`/events/${event.slug}`}
-      className="group relative mx-auto block w-full max-w-sm animate-[rise_600ms_ease-out_both] text-[#1d1b18] drop-shadow-[0_24px_24px_rgba(0,0,0,0.35)] transition-transform md:-rotate-3 md:hover:rotate-0"
-    >
-      <div className="notch-bottom rounded-t-xl bg-paper p-6">
-        <p className="text-xs font-semibold tracking-[0.18em] text-[#0f6b55] uppercase">Next up</p>
-        <p className="mt-2 text-xl leading-snug font-semibold text-balance">{event.title}</p>
-        <p className="mt-3 text-sm text-[#5d574f]">
-          {formatWeekdayDate(event.startsAt)}, {formatTime(event.startsAt)}
-          <br />
-          {event.isOnline ? "Online" : event.city} · {event.organizerName}
-        </p>
-      </div>
-      {/* Below the tear line. */}
-      <div className="notch-top flex items-center gap-5 rounded-b-xl border-t-2 border-dashed border-[#d9d3c7] bg-paper p-6">
-        <div className="h-24 w-24 shrink-0" aria-hidden="true" dangerouslySetInnerHTML={{ __html: qr }} />
-        <div className="text-sm">
-          <p className="font-medium">
-            {event.spotsLeft > 0 ? `${event.spotsLeft} ${event.spotsLeft === 1 ? "spot" : "spots"} left` : "Waitlist open"}
-          </p>
-          <p className="mt-1 text-[#5d574f]">Scan it, or tap here, to see the event.</p>
-        </div>
-      </div>
-    </Link>
+  const open = events.filter((e) => e.spotsLeft > 0);
+  const picks = (open.length > 0 ? open : events).slice(0, 3);
+  if (picks.length === 0) return null;
+  const tickets: DeckTicket[] = await Promise.all(
+    picks.map(async (event) => ({
+      slug: event.slug,
+      title: event.title,
+      when: `${formatWeekdayDate(event.startsAt)}, ${formatTime(event.startsAt)}`,
+      where: `${event.isOnline ? "Online" : event.city} · ${event.organizerName}`,
+      spots:
+        event.spotsLeft > 0 ? `${event.spotsLeft} ${event.spotsLeft === 1 ? "spot" : "spots"} left` : "Waitlist open",
+      qr: await QRCode.toString(`${SITE_URL}/events/${event.slug}`, {
+        type: "svg",
+        margin: 0,
+        errorCorrectionLevel: "M",
+        color: { dark: "#1d1b18", light: "#00000000" },
+      }),
+    })),
   );
+  return <TicketDeck tickets={tickets} />;
 }
 
 async function ThisWeek() {
