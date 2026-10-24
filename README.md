@@ -6,7 +6,7 @@ The live link runs in demo mode: the people and events are made up, the data res
 
 **Live demo:** https://tara-events.vercel.app
 
-![The home page: a ticket for the next event and what's on this week](docs/home.jpg)
+![The home page: a pile of tickets for the next events and what's on this week](docs/home.jpg)
 
 | Browsing by day | An event page |
 | --- | --- |
@@ -17,6 +17,20 @@ The live link runs in demo mode: the people and events are made up, the data res
 | ![Ticket page with a QR code and calendar buttons](docs/ticket.jpg) | ![Dashboard with counts, a sign-ups chart, and the attendee list](docs/dashboard.jpg) |
 
 <img src="docs/phone.jpg" alt="The home and browse pages on a phone, with the tab bar along the bottom" width="440">
+
+## How it feels to use
+
+The home page shows the next three events as a pile of paper tickets. Drag the top one away, or use the arrows, and it goes to the back.
+
+<img src="docs/clip-ticket-pile.gif" alt="Flipping through the pile of tickets on the home page with the arrow, then dragging the top ticket off to the side" width="440">
+
+When you register, your ticket feeds out of a slot like a ticket printer. If the event is full, you see the line instead: the door, the people ahead of you, and you at the back.
+
+<img src="docs/clip-register.gif" alt="Pressing Register on an event page and a ticket printing out under the slot" width="380">
+
+At the door, the check-in page stamps each ticket: admitted, already in, or no entry.
+
+<img src="docs/clip-check-in.gif" alt="Checking in a ticket, scanning it again, then trying a wrong code, each getting its own stamp" width="390">
 
 ## What it does
 
