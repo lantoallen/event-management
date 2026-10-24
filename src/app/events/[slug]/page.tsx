@@ -44,7 +44,11 @@ export default function EventPage({ params }: PageProps<"/events/[slug]">) {
 function CalendarDate({ date, category }: { date: string; category: EventCategory }) {
   return (
     <div className="w-[4.75rem] shrink-0 overflow-hidden rounded-lg bg-paper text-center text-[#1d1b18] shadow-[0_12px_24px_-12px_rgba(0,0,0,0.5)]">
-      <div className="py-1 text-[11px] font-semibold tracking-[0.14em] text-white uppercase" style={{ background: CATEGORY_COLOR[category] }}>
+      {/* Darkened a little so white text passes contrast on every category color. */}
+      <div
+        className="py-1 text-[11px] font-semibold tracking-[0.14em] text-white uppercase"
+        style={{ background: `color-mix(in srgb, ${CATEGORY_COLOR[category]} 80%, black)` }}
+      >
         {formatMonth(date)}
       </div>
       <div className="pt-1 text-3xl leading-none font-semibold">{formatDay(date)}</div>
