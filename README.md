@@ -4,7 +4,7 @@ Tara is Filipino for "let's go", what you say when you invite someone along. It'
 
 The live link runs in demo mode: the people and events are made up, the data resets every day, and you can sign in as a sample attendee or organizer from the login page. With demo mode off, the same code runs as a normal app with real accounts (see [Using it for real](#using-it-for-real)).
 
-**Live demo:** https://event-management-two-alpha.vercel.app
+**Live demo:** https://tara-events.vercel.app
 
 ![The home page: a ticket for the next event and what's on this week](docs/home.jpg)
 
