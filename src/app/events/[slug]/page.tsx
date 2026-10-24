@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { CapacityMeter } from "@/components/capacity-meter";
+import { Countdown } from "@/components/countdown";
 import { EventCard } from "@/components/event-card";
 import { RegisterPanel } from "@/components/register-panel";
 import { ShareButton } from "@/components/share-button";
@@ -74,7 +75,13 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
             <div className="min-w-0 md:max-w-[calc(100%-360px)]">
               <div className="flex flex-wrap items-center gap-2 text-sm text-hero-muted">
                 <CategoryLabel category={event.category} />
-                {event.status !== "cancelled" && <Countdown startsAt={event.startsAt} endsAt={event.endsAt} />}
+                {event.status !== "cancelled" && (
+                  <Countdown
+                    startsAt={event.startsAt}
+                    endsAt={event.endsAt}
+                    initial={startsIn(event.startsAt, event.endsAt)}
+                  />
+                )}
                 {event.status === "draft" && <span className="font-medium text-[#f3d27a]">Draft, only you can see this</span>}
                 {event.status === "cancelled" && <span className="font-medium text-[#ffb3a8]">Cancelled</span>}
                 {event.visibility === "unlisted" && <span>· Unlisted, only people with the link can see it</span>}
@@ -151,20 +158,5 @@ async function EventDetail({ params }: { params: PageProps<"/events/[slug]">["pa
       </aside>
       </div>
     </>
-  );
-}
-
-// How long until it starts. While it's on, a pulsing dot says so.
-function Countdown({ startsAt, endsAt }: { startsAt: string; endsAt: string }) {
-  const label = startsIn(startsAt, endsAt);
-  if (label !== "Happening now") return <span>· {label}</span>;
-  return (
-    <span className="inline-flex items-center gap-1.5 font-medium text-hero-ink">
-      <span className="relative flex h-2 w-2" aria-hidden="true">
-        <span className="absolute inset-0 animate-ping rounded-full bg-[#8fdcc0] opacity-75" />
-        <span className="relative h-2 w-2 rounded-full bg-[#8fdcc0]" />
-      </span>
-      {label}
-    </span>
   );
 }

@@ -237,6 +237,14 @@ body {
   }
 }
 
+/* A new value dropping into place, like a departures board. */
+@keyframes flip-in {
+  from {
+    opacity: 0;
+    translate: 0 -0.5em;
+  }
+}
+
 /* Movement is a nice extra, never a requirement. */
 @media (prefers-reduced-motion: reduce) {
   *,
