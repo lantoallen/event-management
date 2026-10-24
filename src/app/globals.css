@@ -177,6 +177,24 @@ body {
   }
 }
 
+/* A new ticket feeding out of the printer slot. */
+@keyframes print {
+  from {
+    grid-template-rows: 0fr;
+  }
+  to {
+    grid-template-rows: 1fr;
+  }
+}
+
+/* Someone stepping into the back of the line. */
+@keyframes join {
+  from {
+    opacity: 0;
+    translate: 1.5rem 0;
+  }
+}
+
 /* Movement is a nice extra, never a requirement. */
 @media (prefers-reduced-motion: reduce) {
   *,
